@@ -7,67 +7,60 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  DELETED
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
   fullName  String?
-  role      Role     @default(STUDENT)
+  phone     String?
 
-  // relations
-  courses   Course[] @relation("TeacherCourses")
-  enrollments Enrollment[]
+  role      Role     @default(STUDENT)
+  status    Status   @default(ACTIVE)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  student   Student?
+  teacher   Teacher?
 }
 
-model Course {
-  id          String   @id @default(uuid())
-  title       String
-  description String?
-  isPublished Boolean  @default(false)
+model Student {
+  id        String @id @default(uuid())
+  userId    String @unique
 
-  // teacher
-  teacher     User     @relation("TeacherCourses", fields: [teacherId], references: [id])
-  teacherId   String
+  // mã học viên (nếu cần quản lý nội bộ)
+  studentCode String? @unique
 
-  // relations
-  lessons     Lesson[]
-  enrollments Enrollment[]
+  // thông tin phụ huynh
+  parentName String?
+  parentPhone String?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  // học lực khi nhập học
+  entryAcademicLevel String?
+
+  // điểm kiểm tra gần nhất
+  latestTestScore Float?
+
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model Lesson {
-  id        String   @id @default(uuid())
-  title     String
-  content   String?
-  order     Int
+model Teacher {
+  id        String @id @default(uuid())
+  userId    String @unique
 
-  course    Course   @relation(fields: [courseId], references: [id])
-  courseId  String
+  bio       String?
 
-  createdAt DateTime @default(now())
-}
-
-model Enrollment {
-  id        String   @id @default(uuid())
-
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-
-  course    Course   @relation(fields: [courseId], references: [id])
-  courseId  String
-
-  createdAt DateTime @default(now())
-
-  @@unique([userId, courseId])
-}
-
-enum Role {
-  ADMIN
-  TEACHER
-  STUDENT
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

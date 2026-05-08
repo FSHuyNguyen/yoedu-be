@@ -1,29 +1,97 @@
-import { Controller, Get, Patch, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 
 import { UserService } from './user.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import type { User } from './types/user.type';
 
-@UseGuards(JwtAuthGuard)
+import { RolesGuard } from '../auth/guards/roles.guard';
+
+import { Roles } from '../auth/decorators/roles.decorator';
+
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { UserFiltersDto } from './dto/user-filter.dto';
+
 @Controller('users')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('me')
-  getMe(@CurrentUser() user: User) {
-    console.log('Current user:', user);
+  getMe(@CurrentUser() user: any) {
     return this.userService.getMe(user.id);
   }
 
-  @Patch('me')
-  updateMe(@CurrentUser() user: User, @Body() dto: UpdateUserDto) {
-    return this.userService.updateMe(user.id, dto);
+  // PATCH /users/profile
+  @Patch('profile')
+  updateProfile(
+    @CurrentUser() user: any,
+    @Body()
+    dto: {
+      fullName?: string;
+      phone?: string;
+    },
+  ) {
+    return this.userService.updateProfile(user.id, dto);
   }
 
+  // PATCH /users/change-password
+  @Patch('change-password')
+  changePassword(
+    @CurrentUser() user: any,
+    @Body()
+    dto: {
+      oldPassword: string;
+      newPassword: string;
+    },
+  ) {
+    return this.userService.changePassword(user.id, dto);
+  }
+
+  /*************************************************************
+   * ADMIN
+   *************************************************************/
+
+  // GET /users
+  // GET /users?status=ACTIVE
+  @Get()
+  @Roles('ADMIN')
+  findAll(@Query() filters: UserFiltersDto) {
+    return this.userService.findAll(filters);
+  }
+
+  // GET /users/:id
   @Get(':id')
-  getById(@Param('id') id: string) {
-    return this.userService.getById(id);
+  @Roles('ADMIN')
+  findById(@Param('id') id: string) {
+    return this.userService.findById(id);
+  }
+
+  // PATCH /users/:id/change-status
+  @Patch(':id/change-status')
+  @Roles('ADMIN')
+  changeStatus(@Param('id') id: string) {
+    return this.userService.changeStatus(id);
+  }
+
+  // PATCH /users/:id/restore
+  @Patch(':id/restore')
+  @Roles('ADMIN')
+  restore(@Param('id') id: string) {
+    return this.userService.restore(id);
+  }
+
+  // DELETE /users/:id
+  @Delete(':id')
+  @Roles('ADMIN')
+  remove(@Param('id') id: string) {
+    return this.userService.remove(id);
   }
 }
