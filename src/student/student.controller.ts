@@ -29,7 +29,6 @@ export class StudentController {
   /*************************************************************
    * ROLE STUDENT
    *************************************************************/
-  @Roles('STUDENT')
   @Patch('profile')
   updateProfile(
     @CurrentUser() user: any,

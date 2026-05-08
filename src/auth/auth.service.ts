@@ -32,9 +32,6 @@ export class AuthService {
           },
         },
       },
-      include: {
-        student: true,
-      },
     });
 
     return CustomResponse(true, StatusCode.CREATED, 'Đăng ký thành công', null);

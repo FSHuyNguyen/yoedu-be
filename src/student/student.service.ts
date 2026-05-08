@@ -24,6 +24,28 @@ export class StudentService {
   ) {}
 
   /*************************************************************
+   * HELPERS
+   *************************************************************/
+  async getStudentByIdOrThrow(studentId: string) {
+    const student = await this.prisma.student.findUnique({
+      where: {
+        id: studentId,
+      },
+      include: {
+        user: {
+          select: USER_SELECT,
+        },
+      },
+    });
+
+    if (!student) {
+      throw new NotFoundException('Không tìm thấy học viên');
+    }
+
+    return student;
+  }
+
+  /*************************************************************
    * ADMIN
    *************************************************************/
 
@@ -32,7 +54,7 @@ export class StudentService {
 
     const hashedPassword = await hashPassword(dto.password);
 
-    const student = await this.prisma.user.create({
+    await this.prisma.user.create({
       data: {
         email: dto.email,
         password: hashedPassword,
@@ -55,17 +77,13 @@ export class StudentService {
           },
         },
       },
-
-      include: {
-        student: true,
-      },
     });
 
     return CustomResponse(
       true,
       StatusCode.CREATED,
-      'Created student successfully',
-      student,
+      'Tạo học viên thành công',
+      null,
     );
   }
 
@@ -105,12 +123,6 @@ export class StudentService {
         skip,
         take: limit,
 
-        include: {
-          user: {
-            select: USER_SELECT,
-          },
-        },
-
         orderBy: {
           user: {
             createdAt: 'desc',
@@ -126,7 +138,7 @@ export class StudentService {
     return CustomResponse(
       true,
       StatusCode.OK,
-      'Fetched students successfully',
+      'Lấy danh sách học viên thành công',
       {
         items: students,
 
@@ -141,24 +153,16 @@ export class StudentService {
   }
 
   async findById(id: string) {
-    const student = await this.prisma.student.findUnique({
-      where: { id },
-
-      include: {
-        user: {
-          select: USER_SELECT,
-        },
-      },
-    });
+    const student = await this.getStudentByIdOrThrow(id);
 
     if (!student) {
-      throw new NotFoundException('Student not found');
+      throw new NotFoundException('Không tìm thấy học viên');
     }
 
     return CustomResponse(
       true,
       StatusCode.OK,
-      'Fetched student successfully',
+      'Lấy thông tin học viên thành công',
       student,
     );
   }
@@ -166,34 +170,10 @@ export class StudentService {
   /*************************************************************
    * STUDENT
    *************************************************************/
-
-  async findByUserId(userId: string) {
-    const student = await this.prisma.student.findUnique({
-      where: { userId },
-
-      include: {
-        user: {
-          select: USER_SELECT,
-        },
-      },
-    });
-
-    if (!student) {
-      throw new NotFoundException('Student not found');
-    }
-
-    return CustomResponse(
-      true,
-      StatusCode.OK,
-      'Fetched student successfully',
-      student,
-    );
-  }
-
   async updateByUserId(userId: string, dto: UpdateStudentDto) {
-    await this.userService.findById(userId);
+    await this.userService.getUserByIdOrThrow(userId);
 
-    const updatedStudent = await this.prisma.student.update({
+    await this.prisma.student.update({
       where: {
         userId,
       },
@@ -206,19 +186,13 @@ export class StudentService {
 
         latestTestScore: dto.latestTestScore,
       },
-
-      include: {
-        user: {
-          select: USER_SELECT,
-        },
-      },
     });
 
     return CustomResponse(
       true,
       StatusCode.OK,
       'Updated student successfully',
-      updatedStudent,
+      null,
     );
   }
 }

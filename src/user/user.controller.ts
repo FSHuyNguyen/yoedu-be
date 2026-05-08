@@ -81,13 +81,6 @@ export class UserController {
     return this.userService.changeStatus(id);
   }
 
-  // PATCH /users/:id/restore
-  @Patch(':id/restore')
-  @Roles('ADMIN')
-  restore(@Param('id') id: string) {
-    return this.userService.restore(id);
-  }
-
   // DELETE /users/:id
   @Delete(':id')
   @Roles('ADMIN')
