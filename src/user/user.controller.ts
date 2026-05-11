@@ -18,28 +18,27 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserFiltersDto } from './dto/user-filter.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  // GET /users/me
   @Get('me')
   getMe(@CurrentUser() user: any) {
     return this.userService.getMe(user.id);
   }
 
-  // PATCH /users/profile
-  @Patch('profile')
-  updateProfile(
+  // PATCH /users/me
+  @Patch('me')
+  updateMe(
     @CurrentUser() user: any,
     @Body()
-    dto: {
-      fullName?: string;
-      phone?: string;
-    },
+    dto: UpdateUserDto,
   ) {
-    return this.userService.updateProfile(user.id, dto);
+    return this.userService.updateMe(user.id, dto);
   }
 
   // PATCH /users/change-password
@@ -54,10 +53,6 @@ export class UserController {
   ) {
     return this.userService.changePassword(user.id, dto);
   }
-
-  /*************************************************************
-   * ADMIN
-   *************************************************************/
 
   // GET /users
   // GET /users?status=ACTIVE

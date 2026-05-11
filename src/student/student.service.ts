@@ -15,6 +15,7 @@ import { UserService } from '../user/user.service';
 
 import { FiltersStudentDto } from './dto/filter-student.dto';
 import { USER_SELECT } from '../user/constants/user.constants';
+import { mapStudentResponse } from './mappers/student.mapper';
 
 @Injectable()
 export class StudentService {
@@ -48,7 +49,6 @@ export class StudentService {
   /*************************************************************
    * ADMIN
    *************************************************************/
-
   async create(dto: CreateStudentDto) {
     await this.userService.checkEmailExists(dto.email);
 
@@ -58,9 +58,9 @@ export class StudentService {
       data: {
         email: dto.email,
         password: hashedPassword,
-
         fullName: dto.fullName,
         phone: dto.phone,
+        address: dto.address,
 
         role: 'STUDENT',
 
@@ -123,6 +123,12 @@ export class StudentService {
         skip,
         take: limit,
 
+        include: {
+          user: {
+            select: USER_SELECT,
+          },
+        },
+
         orderBy: {
           user: {
             createdAt: 'desc',
@@ -140,7 +146,7 @@ export class StudentService {
       StatusCode.OK,
       'Lấy danh sách học viên thành công',
       {
-        items: students,
+        items: students.map(mapStudentResponse),
 
         pagination: {
           total,
@@ -163,14 +169,11 @@ export class StudentService {
       true,
       StatusCode.OK,
       'Lấy thông tin học viên thành công',
-      student,
+      mapStudentResponse(student),
     );
   }
 
-  /*************************************************************
-   * STUDENT
-   *************************************************************/
-  async updateByUserId(userId: string, dto: UpdateStudentDto) {
+  async updateStudentByAdmin(userId: string, dto: UpdateStudentDto) {
     await this.userService.getUserByIdOrThrow(userId);
 
     await this.prisma.student.update({
@@ -191,7 +194,36 @@ export class StudentService {
     return CustomResponse(
       true,
       StatusCode.OK,
-      'Updated student successfully',
+      'Cập nhật thông tin học viên thành công',
+      null,
+    );
+  }
+
+  /*************************************************************
+   * STUDENT
+   *************************************************************/
+  async updateMe(userId: string, dto: UpdateStudentDto) {
+    await this.userService.getUserByIdOrThrow(userId);
+
+    await this.prisma.student.update({
+      where: {
+        userId,
+      },
+
+      data: {
+        parentName: dto.parentName,
+        parentPhone: dto.parentPhone,
+
+        entryAcademicLevel: dto.entryAcademicLevel,
+
+        latestTestScore: dto.latestTestScore,
+      },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Cập nhật thông tin học viên thành công',
       null,
     );
   }

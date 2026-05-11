@@ -15,6 +15,7 @@ import { StatusCode } from '../../utils/status';
 
 import { UserFiltersDto } from './dto/user-filter.dto';
 import { USER_SELECT } from './constants/user.constants';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -69,14 +70,10 @@ export class UserService {
     );
   }
 
-  async updateProfile(
-    userId: string,
-    dto: {
-      fullName?: string;
-      phone?: string;
-    },
-  ) {
+  async updateMe(userId: string, dto: UpdateUserDto) {
     await this.getUserByIdOrThrow(userId);
+
+    await this.checkEmailExists(dto.email);
 
     await this.prisma.user.update({
       where: {
@@ -84,8 +81,10 @@ export class UserService {
       },
 
       data: {
+        email: dto.email,
         fullName: dto.fullName,
         phone: dto.phone,
+        address: dto.address,
       },
     });
 
@@ -211,12 +210,6 @@ export class UserService {
 
   async changeStatus(userId: string) {
     const user = await this.getUserByIdOrThrow(userId);
-
-    if (user.status === Status.DELETED) {
-      throw new BadRequestException(
-        'Không thể thay đổi trạng thái user đã bị xóa',
-      );
-    }
 
     const newStatus =
       user.status === Status.ACTIVE ? Status.INACTIVE : Status.ACTIVE;

@@ -17,6 +17,10 @@ export class AuthUserDto {
   phone?: string;
 
   @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsOptional()
   @IsEnum(Role)
   role?: Role;
 

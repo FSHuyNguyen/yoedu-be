@@ -29,13 +29,14 @@ export class StudentController {
   /*************************************************************
    * ROLE STUDENT
    *************************************************************/
-  @Patch('profile')
-  updateProfile(
+  @Patch('me')
+  @Roles('STUDENT')
+  updateMe(
     @CurrentUser() user: any,
     @Body()
     dto: UpdateStudentDto,
   ) {
-    return this.studentService.updateByUserId(user.id, dto);
+    return this.studentService.updateMe(user.id, dto);
   }
 
   /*************************************************************
@@ -63,5 +64,11 @@ export class StudentController {
   @Get(':id')
   findById(@Param('id') id: string) {
     return this.studentService.findById(id);
+  }
+
+  @Patch(':id')
+  @Roles('ADMIN')
+  updateStudentByAdmin(@Param('id') id: string, @Body() dto: UpdateStudentDto) {
+    return this.studentService.updateStudentByAdmin(id, dto);
   }
 }
