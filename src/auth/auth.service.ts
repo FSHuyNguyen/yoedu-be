@@ -1,11 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
-import { StatusCode } from '../../utils/status';
-import { CustomResponse } from '../../utils/response';
-import { generateStudentCode } from '../../utils/generate-code';
-import { comparePassword, hashPassword } from '../../utils/hash-password';
+import { StatusCode } from '../shared/utils/status';
+import { CustomResponse } from '../shared/utils/response';
+import { generateCode } from '../shared/utils/generate-code';
+import { comparePassword, hashPassword } from '../shared/utils/hash-password';
 import { UserService } from '../user/user.service';
+import { Role, Status } from '@prisma/client';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +18,7 @@ export class AuthService {
     private userService: UserService,
   ) {}
 
-  async register(dto: { email: string; password: string }) {
+  async register(dto: RegisterDto) {
     await this.userService.checkEmailExists(dto.email);
 
     const hashedPassword = await hashPassword(dto.password);
@@ -24,11 +27,11 @@ export class AuthService {
       data: {
         email: dto.email,
         password: hashedPassword,
-        role: 'STUDENT',
+        role: Role.STUDENT,
 
         student: {
           create: {
-            studentCode: generateStudentCode(),
+            studentCode: generateCode(Role.STUDENT),
           },
         },
       },
@@ -37,7 +40,7 @@ export class AuthService {
     return CustomResponse(true, StatusCode.CREATED, 'Đăng ký thành công', null);
   }
 
-  async login(dto: { email: string; password: string }) {
+  async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
       include: {
@@ -54,6 +57,13 @@ export class AuthService {
 
     if (!isMatch) {
       throw new UnauthorizedException('Tài khoản hoặc mật khẩu không đúng');
+    }
+
+    /* Kiểm tra trạng thái users */
+    if (user.status === Status.INACTIVE || user.status === Status.DELETED) {
+      throw new UnauthorizedException(
+        'Tài khoản của bạn không còn hoạt động. Vui lòng liên hệ quản trị viên để biết thêm chi tiết',
+      );
     }
 
     const token = this.jwtService.sign({

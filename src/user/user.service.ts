@@ -8,14 +8,15 @@ import { Prisma, Status } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 
-import { comparePassword, hashPassword } from '../../utils/hash-password';
+import { comparePassword, hashPassword } from '../shared/utils/hash-password';
 
-import { CustomResponse } from '../../utils/response';
-import { StatusCode } from '../../utils/status';
+import { CustomResponse } from '../shared/utils/response';
+import { StatusCode } from '../shared/utils/status';
 
-import { UserFiltersDto } from './dto/user-filter.dto';
-import { USER_SELECT } from './constants/user.constants';
+import { USER_DETAIL_SELECT, USER_SELECT } from './constants/user.constants';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { UserQueryDto } from './dto/user-query.dto';
 
 @Injectable()
 export class UserService {
@@ -24,15 +25,12 @@ export class UserService {
   /*************************************************************
    * HELPERS
    *************************************************************/
-  async getUserByIdOrThrow(userId: string) {
+  async getUserByIdOrThrow(userId: string, isSelectFull = false) {
     const user = await this.prisma.user.findUnique({
       where: {
         id: userId,
       },
-      include: {
-        student: true,
-        teacher: true,
-      },
+      select: isSelectFull ? undefined : USER_DETAIL_SELECT,
     });
 
     if (!user) {
@@ -42,14 +40,14 @@ export class UserService {
     return user;
   }
 
-  async checkEmailExists(email: string) {
+  async checkEmailExists(email: string, userId?: string) {
     const user = await this.prisma.user.findUnique({
       where: {
         email,
       },
     });
 
-    if (user) {
+    if (user && user.id !== userId) {
       throw new BadRequestException('Email đã tồn tại');
     }
   }
@@ -64,16 +62,16 @@ export class UserService {
       true,
       StatusCode.OK,
       'Lấy thông tin người dùng thành công',
-      {
-        user,
-      },
+      user,
     );
   }
 
   async updateMe(userId: string, dto: UpdateUserDto) {
     await this.getUserByIdOrThrow(userId);
 
-    await this.checkEmailExists(dto.email);
+    if (dto.email) {
+      await this.checkEmailExists(dto.email, userId);
+    }
 
     await this.prisma.user.update({
       where: {
@@ -82,9 +80,16 @@ export class UserService {
 
       data: {
         email: dto.email,
+
         fullName: dto.fullName,
         phone: dto.phone,
         address: dto.address,
+
+        avatarUrl: dto.avatarUrl,
+
+        gender: dto.gender,
+
+        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
       },
     });
 
@@ -96,14 +101,8 @@ export class UserService {
     );
   }
 
-  async changePassword(
-    userId: string,
-    dto: {
-      oldPassword: string;
-      newPassword: string;
-    },
-  ) {
-    const user = await this.getUserByIdOrThrow(userId);
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.getUserByIdOrThrow(userId, true);
 
     const isMatch = await comparePassword(dto.oldPassword, user.password);
 
@@ -130,8 +129,8 @@ export class UserService {
    * ADMIN
    *************************************************************/
 
-  async findAll(filters: UserFiltersDto) {
-    const { page = 1, limit = 10, status, keySearch } = filters;
+  async findAll(query: UserQueryDto) {
+    const { page = 1, limit = 10, status, keySearch } = query;
 
     const skip = (page - 1) * limit;
 
@@ -202,9 +201,7 @@ export class UserService {
       true,
       StatusCode.OK,
       'Lấy thông tin người dùng thành công',
-      {
-        user,
-      },
+      user,
     );
   }
 

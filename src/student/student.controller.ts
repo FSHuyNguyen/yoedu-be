@@ -19,55 +19,43 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
-import { FiltersStudentDto } from './dto/filter-student.dto';
+import { StudentQueryDto } from './dto/student-query.dto';
+import { Role } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('students')
 export class StudentController {
   constructor(private readonly studentService: StudentService) {}
 
-  /*************************************************************
-   * ROLE STUDENT
-   *************************************************************/
   @Patch('me')
-  @Roles('STUDENT')
-  updateMe(
-    @CurrentUser() user: any,
-    @Body()
-    dto: UpdateStudentDto,
-  ) {
-    return this.studentService.updateMe(user.id, dto);
+  @Roles(Role.STUDENT)
+  updateMe(@CurrentUser() user: any, @Body() dto: UpdateStudentDto) {
+    return this.studentService.updateMe(String(user.id), dto);
   }
 
-  /*************************************************************
-   * ROLE ADMIN
-   *************************************************************/
   // POST /students
-  @Roles('ADMIN')
+  @Roles(Role.ADMIN)
   @Post()
-  create(
-    @Body()
-    dto: CreateStudentDto,
-  ) {
+  create(@Body() dto: CreateStudentDto) {
     return this.studentService.create(dto);
   }
 
   // GET /students?page=1&limit=10&keySearch=huy
-  @Roles('ADMIN')
+  @Roles(Role.ADMIN)
   @Get()
-  findAll(@Query() filters: FiltersStudentDto) {
-    return this.studentService.findAll(filters);
+  findAll(@Query() query: StudentQueryDto) {
+    return this.studentService.findAll(query);
   }
 
   // GET /students/:id
-  @Roles('ADMIN')
+  @Roles(Role.ADMIN)
   @Get(':id')
   findById(@Param('id') id: string) {
     return this.studentService.findById(id);
   }
 
   @Patch(':id')
-  @Roles('ADMIN')
+  @Roles(Role.ADMIN)
   updateStudentByAdmin(@Param('id') id: string, @Body() dto: UpdateStudentDto) {
     return this.studentService.updateStudentByAdmin(id, dto);
   }

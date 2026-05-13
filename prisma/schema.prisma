@@ -19,49 +19,101 @@ enum Status {
   DELETED
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  fullName  String?
-  phone     String?
-  address   String?
+  id            String    @id @default(uuid())
 
-  role      Role     @default(STUDENT)
-  status    Status   @default(ACTIVE)
+  email         String    @unique
+  password      String
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  fullName      String?
+  phone         String?
+  address       String?
 
-  student   Student?
-  teacher   Teacher?
+  avatarUrl     String?
+
+  dateOfBirth   DateTime?
+  gender        Gender?
+
+  lastLoginAt   DateTime?
+
+  role          Role      @default(STUDENT)
+  status        Status    @default(ACTIVE)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  student       Student?
+  teacher       Teacher?
+
+  @@map("users")
 }
 
 model Student {
-  id        String @id @default(uuid())
-  userId    String @unique
+  id                    String    @id @default(uuid())
 
-  // mã học viên (nếu cần quản lý nội bộ)
-  studentCode String? @unique
+  userId                String    @unique
+
+  // mã học viên nội bộ
+  studentCode           String @unique
 
   // thông tin phụ huynh
-  parentName String?
-  parentPhone String?
+  parentName            String?
+  parentPhone           String?
 
-  // học lực khi nhập học
-  entryAcademicLevel String?
+  // trường / lớp hiện tại
+  schoolName            String?
+  grade                 String?
 
-  // điểm kiểm tra gần nhất
-  latestTestScore Float?
+  // trình độ đầu vào
+  entryAcademicLevel    String?
 
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // điểm gần nhất
+  latestTestScore       Float?
+
+  // mục tiêu học
+  learningGoal          String?
+
+  // ghi chú nội bộ
+  note                  String?
+
+  // ngày tham gia
+  joinedAt              DateTime? @default(now())
+
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("students")
 }
 
 model Teacher {
-  id        String @id @default(uuid())
-  userId    String @unique
+  id                    String    @id @default(uuid())
 
-  bio       String?
+  userId                String    @unique
 
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // mã giáo viên nội bộ
+  teacherCode           String    @unique
+
+  // giới thiệu
+  bio                   String?
+
+  // chuyên môn
+  specialization        String?
+
+  // bằng cấp
+  qualification         String?
+
+  // số năm kinh nghiệm
+  yearsOfExperience     Int?
+
+  // trạng thái nhận lớp
+  isAvailable           Boolean   @default(true)
+
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("teachers")
 }

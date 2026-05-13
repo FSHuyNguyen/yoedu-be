@@ -17,8 +17,10 @@ import { Roles } from '../auth/decorators/roles.decorator';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { UserFiltersDto } from './dto/user-filter.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { UserQueryDto } from './dto/user-query.dto';
+import { Role } from '@prisma/client';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -28,57 +30,46 @@ export class UserController {
   // GET /users/me
   @Get('me')
   getMe(@CurrentUser() user: any) {
-    return this.userService.getMe(user.id);
+    return this.userService.getMe(String(user.id));
   }
 
   // PATCH /users/me
   @Patch('me')
-  updateMe(
-    @CurrentUser() user: any,
-    @Body()
-    dto: UpdateUserDto,
-  ) {
-    return this.userService.updateMe(user.id, dto);
+  updateMe(@CurrentUser() user: any, @Body() dto: UpdateUserDto) {
+    return this.userService.updateMe(String(user.id), dto);
   }
 
   // PATCH /users/change-password
   @Patch('change-password')
-  changePassword(
-    @CurrentUser() user: any,
-    @Body()
-    dto: {
-      oldPassword: string;
-      newPassword: string;
-    },
-  ) {
-    return this.userService.changePassword(user.id, dto);
+  changePassword(@CurrentUser() user: any, @Body() dto: ChangePasswordDto) {
+    return this.userService.changePassword(String(user.id), dto);
   }
 
   // GET /users
   // GET /users?status=ACTIVE
   @Get()
-  @Roles('ADMIN')
-  findAll(@Query() filters: UserFiltersDto) {
-    return this.userService.findAll(filters);
+  @Roles(Role.ADMIN)
+  findAll(@Query() query: UserQueryDto) {
+    return this.userService.findAll(query);
   }
 
   // GET /users/:id
   @Get(':id')
-  @Roles('ADMIN')
+  @Roles(Role.ADMIN)
   findById(@Param('id') id: string) {
     return this.userService.findById(id);
   }
 
   // PATCH /users/:id/change-status
   @Patch(':id/change-status')
-  @Roles('ADMIN')
+  @Roles(Role.ADMIN)
   changeStatus(@Param('id') id: string) {
     return this.userService.changeStatus(id);
   }
 
   // DELETE /users/:id
   @Delete(':id')
-  @Roles('ADMIN')
+  @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
     return this.userService.remove(id);
   }

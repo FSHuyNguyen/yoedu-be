@@ -1,23 +1,8 @@
-import { IsOptional, IsString, IsNumber } from 'class-validator';
+import { IntersectionType } from '@nestjs/mapped-types';
+import { UpdateUserDto } from '../../user/dto/update-user.dto';
+import { BaseStudentDto } from './base-student.dto';
 
-export class UpdateStudentDto {
-  @IsOptional()
-  @IsString()
-  studentCode?: string;
-
-  @IsOptional()
-  @IsString()
-  parentName?: string;
-
-  @IsOptional()
-  @IsString()
-  parentPhone?: string;
-
-  @IsOptional()
-  @IsString()
-  entryAcademicLevel?: string;
-
-  @IsOptional()
-  @IsNumber()
-  latestTestScore?: number;
-}
+export class UpdateStudentDto extends IntersectionType(
+  UpdateUserDto,
+  BaseStudentDto,
+) {}

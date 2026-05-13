@@ -1,36 +1,54 @@
-type StudentResponse = {
-  id: string;
-  studentCode: string | null;
-  parentName: string | null;
-  parentPhone: string | null;
-  entryAcademicLevel: string | null;
-  latestTestScore: number | null;
-  user: {
-    fullName: string | null;
-    email: string;
-    phone: string | null;
-    role: string | null;
-    status: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-  };
-};
+import { Prisma } from '@prisma/client';
+import { STUDENT_INCLUDE } from '../constants/student.constants';
+
+type StudentResponse = Prisma.StudentGetPayload<{
+  include: typeof STUDENT_INCLUDE;
+}>;
 
 export const mapStudentResponse = (student: StudentResponse) => {
   return {
-    ...student,
-    fullName: student.user?.fullName,
+    id: student.id,
 
-    email: student.user?.email,
+    userId: student.user.id,
 
-    phone: student.user?.phone,
+    studentCode: student.studentCode,
 
-    role: student.user?.role,
+    parentName: student.parentName,
+    parentPhone: student.parentPhone,
 
-    status: student.user?.status,
+    schoolName: student.schoolName,
+    grade: student.grade,
 
-    createdAt: student.user?.createdAt,
+    entryAcademicLevel: student.entryAcademicLevel,
 
-    updatedAt: student.user?.updatedAt,
+    latestTestScore: student.latestTestScore,
+
+    learningGoal: student.learningGoal,
+
+    note: student.note,
+
+    joinedAt: student.joinedAt,
+
+    email: student.user.email,
+
+    fullName: student.user.fullName,
+
+    phone: student.user.phone,
+
+    address: student.user.address,
+
+    avatarUrl: student.user.avatarUrl,
+
+    gender: student.user.gender,
+
+    dateOfBirth: student.user.dateOfBirth,
+
+    role: student.user.role,
+
+    status: student.user.status,
+
+    createdAt: student.user.createdAt,
+
+    updatedAt: student.user.updatedAt,
   };
 };

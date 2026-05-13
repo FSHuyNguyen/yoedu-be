@@ -5,17 +5,18 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 
-import { CustomResponse } from '../../utils/response';
-import { StatusCode } from '../../utils/status';
+import { CustomResponse } from '../shared/utils/response';
+import { StatusCode } from '../shared/utils/status';
 
-import { generateStudentCode } from '../../utils/generate-code';
-import { hashPassword } from '../../utils/hash-password';
+import { generateCode } from '../shared/utils/generate-code';
+import { hashPassword } from '../shared/utils/hash-password';
 
 import { UserService } from '../user/user.service';
 
-import { FiltersStudentDto } from './dto/filter-student.dto';
-import { USER_SELECT } from '../user/constants/user.constants';
 import { mapStudentResponse } from './mappers/student.mapper';
+import { Prisma, Role } from '@prisma/client';
+import { StudentQueryDto } from './dto/student-query.dto';
+import { STUDENT_INCLUDE } from './constants/student.constants';
 
 @Injectable()
 export class StudentService {
@@ -27,16 +28,13 @@ export class StudentService {
   /*************************************************************
    * HELPERS
    *************************************************************/
-  async getStudentByIdOrThrow(studentId: string) {
+  private async getStudentByIdOrThrow(studentId: string) {
     const student = await this.prisma.student.findUnique({
       where: {
         id: studentId,
       },
-      include: {
-        user: {
-          select: USER_SELECT,
-        },
-      },
+
+      include: STUDENT_INCLUDE,
     });
 
     if (!student) {
@@ -44,6 +42,62 @@ export class StudentService {
     }
 
     return student;
+  }
+
+  private async updateStudentProfile(userId: string, dto: UpdateStudentDto) {
+    await this.userService.getUserByIdOrThrow(userId);
+
+    if (dto.email) {
+      await this.userService.checkEmailExists(dto.email, userId);
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+
+        data: {
+          email: dto.email,
+
+          fullName: dto.fullName,
+
+          phone: dto.phone,
+
+          address: dto.address,
+
+          avatarUrl: dto.avatarUrl,
+
+          gender: dto.gender,
+
+          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+        },
+      }),
+
+      this.prisma.student.update({
+        where: {
+          userId,
+        },
+
+        data: {
+          parentName: dto.parentName,
+
+          parentPhone: dto.parentPhone,
+
+          schoolName: dto.schoolName,
+
+          grade: dto.grade,
+
+          entryAcademicLevel: dto.entryAcademicLevel,
+
+          latestTestScore: dto.latestTestScore,
+
+          learningGoal: dto.learningGoal,
+
+          note: dto.note,
+        },
+      }),
+    ]);
   }
 
   /*************************************************************
@@ -57,23 +111,40 @@ export class StudentService {
     await this.prisma.user.create({
       data: {
         email: dto.email,
+
         password: hashedPassword,
+
         fullName: dto.fullName,
+
         phone: dto.phone,
+
         address: dto.address,
 
-        role: 'STUDENT',
+        avatarUrl: dto.avatarUrl,
+
+        gender: dto.gender,
+
+        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+
+        role: Role.STUDENT,
 
         student: {
           create: {
-            studentCode: generateStudentCode(),
+            studentCode: generateCode(Role.STUDENT),
 
             parentName: dto.parentName,
             parentPhone: dto.parentPhone,
 
+            schoolName: dto.schoolName,
+            grade: dto.grade,
+
             entryAcademicLevel: dto.entryAcademicLevel,
 
             latestTestScore: dto.latestTestScore,
+
+            learningGoal: dto.learningGoal,
+
+            note: dto.note,
           },
         },
       },
@@ -87,19 +158,21 @@ export class StudentService {
     );
   }
 
-  async findAll(filters: FiltersStudentDto) {
-    const { page = 1, limit = 10, keySearch } = filters;
+  async findAll(query: StudentQueryDto) {
+    const { page = 1, limit = 10, status, keySearch } = query;
 
     const skip = (page - 1) * limit;
 
-    const where: any = {
-      user: {
-        role: 'STUDENT',
-      },
+    const userWhere: Prisma.UserWhereInput = {
+      role: Role.STUDENT,
     };
 
+    if (status) {
+      userWhere.status = status;
+    }
+
     if (keySearch) {
-      where.user.OR = [
+      userWhere.OR = [
         {
           email: {
             contains: keySearch,
@@ -116,6 +189,10 @@ export class StudentService {
       ];
     }
 
+    const where: Prisma.StudentWhereInput = {
+      user: userWhere,
+    };
+
     const [students, total] = await Promise.all([
       this.prisma.student.findMany({
         where,
@@ -123,11 +200,7 @@ export class StudentService {
         skip,
         take: limit,
 
-        include: {
-          user: {
-            select: USER_SELECT,
-          },
-        },
+        include: STUDENT_INCLUDE,
 
         orderBy: {
           user: {
@@ -161,10 +234,6 @@ export class StudentService {
   async findById(id: string) {
     const student = await this.getStudentByIdOrThrow(id);
 
-    if (!student) {
-      throw new NotFoundException('Không tìm thấy học viên');
-    }
-
     return CustomResponse(
       true,
       StatusCode.OK,
@@ -174,22 +243,7 @@ export class StudentService {
   }
 
   async updateStudentByAdmin(userId: string, dto: UpdateStudentDto) {
-    await this.userService.getUserByIdOrThrow(userId);
-
-    await this.prisma.student.update({
-      where: {
-        userId,
-      },
-
-      data: {
-        parentName: dto.parentName,
-        parentPhone: dto.parentPhone,
-
-        entryAcademicLevel: dto.entryAcademicLevel,
-
-        latestTestScore: dto.latestTestScore,
-      },
-    });
+    await this.updateStudentProfile(userId, dto);
 
     return CustomResponse(
       true,
@@ -203,22 +257,7 @@ export class StudentService {
    * STUDENT
    *************************************************************/
   async updateMe(userId: string, dto: UpdateStudentDto) {
-    await this.userService.getUserByIdOrThrow(userId);
-
-    await this.prisma.student.update({
-      where: {
-        userId,
-      },
-
-      data: {
-        parentName: dto.parentName,
-        parentPhone: dto.parentPhone,
-
-        entryAcademicLevel: dto.entryAcademicLevel,
-
-        latestTestScore: dto.latestTestScore,
-      },
-    });
+    await this.updateStudentProfile(userId, dto);
 
     return CustomResponse(
       true,

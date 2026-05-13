@@ -1,16 +1,10 @@
-import { Type } from 'class-transformer';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { Status } from '@prisma/client';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 
-export class FiltersStudentDto {
+export class StudentFilterDto {
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  page?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  limit?: number;
+  @IsEnum(Status)
+  status?: Status;
 
   @IsOptional()
   @IsString()
