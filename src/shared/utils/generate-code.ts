@@ -1,6 +1,10 @@
-/* Prefix role + timestamp*/
+/* Prefix role + timestamp */
 export const generateCode = (prefix: string) => {
-  const random = Math.floor(1000 + Math.random() * 9000);
+  const now = new Date();
 
-  return `${prefix}-${Date.now()}-${random}`;
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = String(now.getFullYear()).slice(-2);
+
+  return `Yoedu-${prefix}-${day}${month}${year}`;
 };

@@ -1,8 +1,8 @@
 import { Prisma } from '@prisma/client';
-import { STUDENT_INCLUDE } from '../constants/student.constants';
+import { USER_INCLUDE } from '../../user/constants/user.constants';
 
 type StudentResponse = Prisma.StudentGetPayload<{
-  include: typeof STUDENT_INCLUDE;
+  include: typeof USER_INCLUDE;
 }>;
 
 export const mapStudentResponse = (student: StudentResponse) => {

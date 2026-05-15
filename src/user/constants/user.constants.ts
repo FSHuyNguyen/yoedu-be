@@ -1,3 +1,5 @@
+import { Prisma } from '@prisma/client';
+
 export const USER_SELECT = {
   id: true,
 
@@ -26,3 +28,9 @@ export const USER_DETAIL_SELECT = {
   student: true,
   teacher: true,
 };
+
+export const USER_INCLUDE = {
+  user: {
+    select: USER_SELECT,
+  },
+} satisfies Prisma.StudentInclude;

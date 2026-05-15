@@ -1,25 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-
 import { PrismaService } from '../prisma/prisma.service';
-
-import { CreateStudentDto } from './dto/create-student.dto';
-import { UpdateStudentDto } from './dto/update-student.dto';
-
+import { UserService } from '../user/user.service';
+import { USER_INCLUDE } from '../user/constants/user.constants';
+import { UpdateTeacherDto } from './dto/update-teacher.dto';
+import { CreateTeacherDto } from './dto/create-teacher.dto';
+import { hashPassword } from '../shared/utils/hash-password';
+import { generateCode } from '../shared/utils/generate-code';
+import { Prisma, Role } from '@prisma/client';
 import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
-
-import { generateCode } from '../shared/utils/generate-code';
-import { hashPassword } from '../shared/utils/hash-password';
-
-import { UserService } from '../user/user.service';
-
-import { mapStudentResponse } from './mappers/student.mapper';
-import { Prisma, Role } from '@prisma/client';
-import { StudentQueryDto } from './dto/student-query.dto';
-import { USER_INCLUDE } from '../user/constants/user.constants';
+import { TeacherQueryDto } from './dto/teacher-query.dto';
+import { mapTeacherResponse } from './mappers/teacher.mapper';
 
 @Injectable()
-export class StudentService {
+export class TeacherService {
   constructor(
     private prisma: PrismaService,
     private userService: UserService,
@@ -28,23 +22,23 @@ export class StudentService {
   /*************************************************************
    * HELPERS
    *************************************************************/
-  private async getStudentByIdOrThrow(studentId: string) {
-    const student = await this.prisma.student.findUnique({
+  private async getTeacherByIdOrThrow(teacherId: string) {
+    const teacher = await this.prisma.teacher.findUnique({
       where: {
-        id: studentId,
+        id: teacherId,
       },
 
       include: USER_INCLUDE,
     });
 
-    if (!student) {
-      throw new NotFoundException('Không tìm thấy học viên');
+    if (!teacher) {
+      throw new NotFoundException('Không tìm thấy giáo viên');
     }
 
-    return student;
+    return teacher;
   }
 
-  private async updateStudentProfile(userId: string, dto: UpdateStudentDto) {
+  private async updateTeacherProfile(userId: string, dto: UpdateTeacherDto) {
     await this.userService.getUserByIdOrThrow(userId);
 
     if (dto.email) {
@@ -74,25 +68,19 @@ export class StudentService {
         },
       }),
 
-      this.prisma.student.update({
+      this.prisma.teacher.update({
         where: {
           userId,
         },
 
         data: {
-          parentName: dto.parentName,
+          bio: dto.bio,
 
-          parentPhone: dto.parentPhone,
+          specialization: dto.specialization,
 
-          schoolName: dto.schoolName,
+          qualification: dto.qualification,
 
-          grade: dto.grade,
-
-          entryAcademicLevel: dto.entryAcademicLevel,
-
-          latestTestScore: dto.latestTestScore,
-
-          learningGoal: dto.learningGoal,
+          yearsOfExperience: dto.yearsOfExperience,
 
           note: dto.note,
         },
@@ -103,7 +91,7 @@ export class StudentService {
   /*************************************************************
    * ADMIN
    *************************************************************/
-  async create(dto: CreateStudentDto) {
+  async create(dto: CreateTeacherDto) {
     await this.userService.checkEmailExists(dto.email);
 
     const hashedPassword = await hashPassword(dto.password);
@@ -126,23 +114,19 @@ export class StudentService {
 
         dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
 
-        role: Role.STUDENT,
+        role: Role.TEACHER,
 
-        student: {
+        teacher: {
           create: {
-            studentCode: generateCode(Role.STUDENT),
+            teacherCode: generateCode(Role.TEACHER),
 
-            parentName: dto.parentName,
-            parentPhone: dto.parentPhone,
+            bio: dto.bio,
 
-            schoolName: dto.schoolName,
-            grade: dto.grade,
+            specialization: dto.specialization,
 
-            entryAcademicLevel: dto.entryAcademicLevel,
+            qualification: dto.qualification,
 
-            latestTestScore: dto.latestTestScore,
-
-            learningGoal: dto.learningGoal,
+            yearsOfExperience: dto.yearsOfExperience,
 
             note: dto.note,
           },
@@ -153,18 +137,18 @@ export class StudentService {
     return CustomResponse(
       true,
       StatusCode.CREATED,
-      'Tạo học viên thành công',
+      'Tạo giáo viên thành công',
       null,
     );
   }
 
-  async findAll(query: StudentQueryDto) {
+  async findAll(query: TeacherQueryDto) {
     const { page = 1, limit = 10, status, keySearch } = query;
 
     const skip = (page - 1) * limit;
 
     const userWhere: Prisma.UserWhereInput = {
-      role: Role.STUDENT,
+      role: Role.TEACHER,
     };
 
     if (status) {
@@ -189,12 +173,12 @@ export class StudentService {
       ];
     }
 
-    const where: Prisma.StudentWhereInput = {
+    const where: Prisma.TeacherWhereInput = {
       user: userWhere,
     };
 
-    const [students, total] = await Promise.all([
-      this.prisma.student.findMany({
+    const [teachers, total] = await Promise.all([
+      this.prisma.teacher.findMany({
         where,
 
         skip,
@@ -209,7 +193,7 @@ export class StudentService {
         },
       }),
 
-      this.prisma.student.count({
+      this.prisma.teacher.count({
         where,
       }),
     ]);
@@ -217,9 +201,9 @@ export class StudentService {
     return CustomResponse(
       true,
       StatusCode.OK,
-      'Lấy danh sách học viên thành công',
+      'Lấy danh sách giáo viên thành công',
       {
-        items: students.map(mapStudentResponse),
+        items: teachers.map(mapTeacherResponse),
 
         pagination: {
           total,
@@ -232,37 +216,37 @@ export class StudentService {
   }
 
   async findById(id: string) {
-    const student = await this.getStudentByIdOrThrow(id);
+    const teacher = await this.getTeacherByIdOrThrow(id);
 
     return CustomResponse(
       true,
       StatusCode.OK,
-      'Lấy thông tin học viên thành công',
-      mapStudentResponse(student),
+      'Lấy thông tin giáo viên thành công',
+      mapTeacherResponse(teacher),
     );
   }
 
-  async updateStudentByAdmin(userId: string, dto: UpdateStudentDto) {
-    await this.updateStudentProfile(userId, dto);
+  async updateTeacherByAdmin(userId: string, dto: UpdateTeacherDto) {
+    await this.updateTeacherProfile(userId, dto);
 
     return CustomResponse(
       true,
       StatusCode.OK,
-      'Cập nhật thông tin học viên thành công',
+      'Cập nhật thông tin giáo viên thành công',
       null,
     );
   }
 
   /*************************************************************
-   * STUDENT
+   * TEACHER
    *************************************************************/
-  async updateMe(userId: string, dto: UpdateStudentDto) {
-    await this.updateStudentProfile(userId, dto);
+  async updateMe(userId: string, dto: UpdateTeacherDto) {
+    await this.updateTeacherProfile(userId, dto);
 
     return CustomResponse(
       true,
       StatusCode.OK,
-      'Cập nhật thông tin học viên thành công',
+      'Cập nhật thông tin giáo viên thành công',
       null,
     );
   }

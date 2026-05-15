@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { StatusCode } from '../shared/utils/status';
@@ -50,18 +50,18 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Tài khoản hoặc mật khẩu không đúng');
+      throw new BadRequestException('Tài khoản hoặc mật khẩu không đúng');
     }
 
     const isMatch = await comparePassword(dto.password, user.password);
 
     if (!isMatch) {
-      throw new UnauthorizedException('Tài khoản hoặc mật khẩu không đúng');
+      throw new BadRequestException('Tài khoản hoặc mật khẩu không đúng');
     }
 
     /* Kiểm tra trạng thái users */
     if (user.status === Status.INACTIVE || user.status === Status.DELETED) {
-      throw new UnauthorizedException(
+      throw new BadRequestException(
         'Tài khoản của bạn không còn hoạt động. Vui lòng liên hệ quản trị viên để biết thêm chi tiết',
       );
     }

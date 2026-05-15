@@ -113,6 +113,12 @@ model Teacher {
   // trạng thái nhận lớp
   isAvailable           Boolean   @default(true)
 
+  // ngày vào làm
+  joinedAt              DateTime? @default(now())
+
+  // ghi chú nội bộ
+  note                  String?
+
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("teachers")

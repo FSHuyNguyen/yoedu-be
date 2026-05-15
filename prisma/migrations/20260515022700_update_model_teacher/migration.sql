@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "teachers" ADD COLUMN     "joinedAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP;
