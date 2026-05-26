@@ -103,3 +103,4 @@ Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
 -- sync schema with db: npx prisma db push
 -- generate: npx prisma generate
 -- new migration: npx prisma migrate dev --name init
+-- Run Seed: npx prisma db seed

@@ -1,11 +1,21 @@
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Status } from '@prisma/client';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class TeacherFilterDto {
+  @ApiPropertyOptional({
+    enum: Status,
+    example: Status.ACTIVE,
+    description: 'Trạng thái giáo viên',
+  })
   @IsOptional()
   @IsEnum(Status)
   status?: Status;
 
+  @ApiPropertyOptional({
+    example: 'Nguyễn Văn A',
+    description: 'Từ khóa tìm kiếm theo tên, email hoặc số điện thoại',
+  })
   @IsOptional()
   @IsString()
   keySearch?: string;

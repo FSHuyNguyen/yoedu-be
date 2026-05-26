@@ -15,12 +15,28 @@ import { memoryStorage } from 'multer';
 import { UploadService } from './upload.service';
 import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
+import { ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 @Controller('upload')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post('image')
+  @ApiOperation({
+    summary: 'Upload hình ảnh',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),

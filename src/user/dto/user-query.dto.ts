@@ -1,4 +1,4 @@
-import { IntersectionType } from '@nestjs/mapped-types';
+import { IntersectionType } from '@nestjs/swagger';
 
 import { UserFilterDto } from './user-filter.dto';
 import { PaginationDto } from '../../shared/dto/pagination.dto';
