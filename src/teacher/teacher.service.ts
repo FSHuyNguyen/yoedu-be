@@ -6,7 +6,7 @@ import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { hashPassword } from '../shared/utils/hash-password';
 import { generateCode } from '../shared/utils/generate-code';
-import { Prisma, Role } from '@prisma/client';
+import { Prisma, Role, Status } from '@prisma/client';
 import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
 import { TeacherQueryDto } from './dto/teacher-query.dto';
@@ -22,7 +22,7 @@ export class TeacherService {
   /*************************************************************
    * HELPERS
    *************************************************************/
-  private async getTeacherByIdOrThrow(teacherId: string) {
+  public async getTeacherByIdOrThrow(teacherId: string) {
     const teacher = await this.prisma.teacher.findUnique({
       where: {
         id: teacherId,
@@ -86,6 +86,23 @@ export class TeacherService {
         },
       }),
     ]);
+  }
+
+  async getActiveTeachers() {
+    const teachers = await this.prisma.teacher.findMany({
+      where: {
+        user: {
+          role: Role.TEACHER,
+          status: Status.ACTIVE,
+        },
+      },
+      include: USER_INCLUDE,
+    });
+
+    return teachers.map((teacher) => ({
+      value: teacher.id,
+      label: teacher.user.fullName,
+    }));
   }
 
   /*************************************************************

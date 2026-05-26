@@ -25,6 +25,25 @@ enum Gender {
   OTHER
 }
 
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum CourseStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  DELETED
+}
+
+enum EnrollmentStatus {
+  STUDYING
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id            String    @id @default(uuid())
 
@@ -60,7 +79,7 @@ model Student {
   userId                String    @unique
 
   // mã học viên nội bộ
-  studentCode           String @unique
+  studentCode           String    @unique
 
   // thông tin phụ huynh
   parentName            String?
@@ -85,7 +104,10 @@ model Student {
   // ngày tham gia
   joinedAt              DateTime? @default(now())
 
+  // relation
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  enrollments           Enrollment[]
 
   @@map("students")
 }
@@ -119,7 +141,94 @@ model Teacher {
   // ghi chú nội bộ
   note                  String?
 
+  // relation
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  courses               Course[]
+
   @@map("teachers")
+}
+
+model Course {
+  id                    String              @id @default(uuid())
+
+  // mã khóa học nội bộ
+  courseCode                  String              @unique
+
+  // tên khóa học
+  name                  String
+
+  // mô tả
+  description           String?
+
+  // ảnh thumbnail
+  thumbnailUrl          String?
+
+  // trình độ khóa học
+  level                 CourseLevel?
+
+  // giá niêm yết
+  price                 Float?
+
+  // tổng số buổi học
+  totalSessions         Int?
+
+  // ngày bắt đầu
+  startDate             DateTime?
+
+  // ngày kết thúc
+  endDate               DateTime?
+
+  // trạng thái khóa học
+  status                CourseStatus        @default(DRAFT)
+
+  // giáo viên phụ trách
+  teacherId             String?
+
+  // timestamps
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  // relation
+  teacher               Teacher?            @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+
+  enrollments           Enrollment[]
+
+  @@map("courses")
+}
+
+model Enrollment {
+  id                    String              @id @default(uuid())
+
+  studentId             String
+  courseId              String
+
+  // snapshot giá khóa học lúc đăng ký
+  originalPrice         Float?
+
+  // số tiền thực tế đã đóng
+  paidAmount            Float?
+
+  // trạng thái học
+  status                EnrollmentStatus    @default(STUDYING)
+
+  // ngày đăng ký
+  enrolledAt            DateTime            @default(now())
+
+  // ghi chú
+  note                  String?
+
+  // timestamps
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  // relation
+  student               Student             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  course                Course              @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  // 1 học viên không được đăng ký trùng 1 khóa
+  @@unique([studentId, courseId])
+
+  @@map("enrollments")
 }

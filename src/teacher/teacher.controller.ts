@@ -26,6 +26,11 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 export class TeacherController {
   constructor(private readonly teacherService: TeacherService) {}
 
+  @Get('options')
+  getActiveTeachers() {
+    return this.teacherService.getActiveTeachers();
+  }
+
   @Patch('me')
   @Roles(Role.TEACHER)
   updateMe(@CurrentUser() user: any, @Body() dto: UpdateTeacherDto) {
