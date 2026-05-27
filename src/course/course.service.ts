@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { CourseStatus, Prisma } from '@prisma/client';
+import { CourseStatus, Prisma, Role } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
-import { CourseQueryDto } from './dto/course-query.dto';
+import { CourseQueryDto } from './dto/query-course.dto';
 
 import { generateCode } from '../shared/utils/generate-code';
 
@@ -40,9 +40,20 @@ export class CourseService {
       throw new NotFoundException('Không tìm thấy khóa học');
     }
 
-    console.log('course', course);
-
     return course;
+  }
+
+  async getCourseOptions() {
+    const courses = await this.prismaService.course.findMany({
+      where: {
+        status: CourseStatus.OPEN,
+      },
+    });
+
+    return courses.map((course) => ({
+      value: course.id,
+      label: course.name,
+    }));
   }
 
   async create(dto: CreateCourseDto) {
@@ -52,29 +63,11 @@ export class CourseService {
 
     await this.prismaService.course.create({
       data: {
+        ...dto,
         courseCode: generateCode('Course'),
-
-        name: dto.name,
-
-        description: dto.description,
-
-        thumbnailUrl: dto.thumbnailUrl,
-
-        level: dto.level,
-
-        price: dto.price,
-
-        totalSessions: dto.totalSessions,
-
-        startDate: dto.startDate,
-
-        endDate: dto.endDate,
-
-        status: dto.status,
-
-        teacherId: dto.teacherId,
+        startDate: dto.startDate ? new Date(dto.startDate) : undefined,
+        endDate: dto.endDate ? new Date(dto.endDate) : undefined,
       },
-
       include: COURSE_INCLUDE,
     });
 
@@ -86,7 +79,7 @@ export class CourseService {
     );
   }
 
-  async findAll(query: CourseQueryDto) {
+  async findAll(user: any, query: CourseQueryDto) {
     const {
       page = 1,
       limit = 10,
@@ -100,6 +93,12 @@ export class CourseService {
     const skip = (page - 1) * limit;
 
     const where: Prisma.CourseWhereInput = {};
+
+    // ADMIN -> xem tất cả
+    // TEACHER -> chỉ xem course của mình
+    if (user.role === Role.TEACHER) {
+      where.teacherId = user.teacherId;
+    }
 
     if (status) {
       where.status = status;

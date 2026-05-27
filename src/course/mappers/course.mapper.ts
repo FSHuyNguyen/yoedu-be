@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { CourseStatus, Prisma } from '@prisma/client';
 import { USER_INCLUDE } from '../../user/constants/user.constants';
 
 export const COURSE_INCLUDE = {
@@ -10,6 +10,13 @@ export const COURSE_INCLUDE = {
 type CourseResponse = Prisma.CourseGetPayload<{
   include: typeof COURSE_INCLUDE;
 }>;
+
+const mappedStatusText: Record<string, string> = {
+  [CourseStatus.DRAFT]: 'Bản nháp',
+  [CourseStatus.OPEN]: 'Đang mở',
+  [CourseStatus.CLOSED]: 'Đã đóng',
+  [CourseStatus.DELETED]: 'Đã xóa',
+};
 
 export const mapCourseResponse = (course: CourseResponse) => {
   return {
@@ -29,15 +36,19 @@ export const mapCourseResponse = (course: CourseResponse) => {
 
     totalSessions: course.totalSessions,
 
+    maxStudents: course.maxStudents,
+
     startDate: course.startDate,
 
     endDate: course.endDate,
 
-    status: course.status,
-
     teacherId: course.teacherId,
 
-    teacherfullName: course.teacher ? course.teacher.user.fullName : '',
+    teacherName: course.teacher ? course.teacher.user.fullName : '',
+
+    status: course.status,
+
+    statusText: mappedStatusText[course.status],
 
     createdAt: course.createdAt,
 

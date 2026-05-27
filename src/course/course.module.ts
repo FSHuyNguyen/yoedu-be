@@ -8,6 +8,7 @@ import { TeacherModule } from '../teacher/teacher.module';
 
 @Module({
   imports: [PrismaModule, TeacherModule],
+  exports: [CourseService],
   controllers: [CourseController],
   providers: [CourseService],
 })

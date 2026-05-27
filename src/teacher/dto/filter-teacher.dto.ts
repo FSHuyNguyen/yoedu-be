@@ -13,7 +13,7 @@ export class TeacherFilterDto {
   status?: Status;
 
   @ApiPropertyOptional({
-    example: 'Nguyễn Văn A',
+    example: '',
     description: 'Từ khóa tìm kiếm theo tên, email hoặc số điện thoại',
   })
   @IsOptional()

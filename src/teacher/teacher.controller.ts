@@ -17,7 +17,7 @@ import { Role } from '@prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
-import { TeacherQueryDto } from './dto/teacher-query.dto';
+import { TeacherQueryDto } from './dto/query-teacher.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiBearerAuth()
@@ -27,8 +27,8 @@ export class TeacherController {
   constructor(private readonly teacherService: TeacherService) {}
 
   @Get('options')
-  getActiveTeachers() {
-    return this.teacherService.getActiveTeachers();
+  getTeacherOptions() {
+    return this.teacherService.getTeacherOptions();
   }
 
   @Patch('me')

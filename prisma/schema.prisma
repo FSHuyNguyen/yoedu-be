@@ -173,6 +173,9 @@ model Course {
   // tổng số buổi học
   totalSessions         Int?
 
+  // Tổng số học viên
+  maxStudents           Int?
+
   // ngày bắt đầu
   startDate             DateTime?
 

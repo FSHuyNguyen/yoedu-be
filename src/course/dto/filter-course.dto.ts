@@ -24,7 +24,7 @@ export class FilterCourseDto {
   level?: CourseLevel;
 
   @ApiPropertyOptional({
-    example: 'teacher-id',
+    example: '',
     description: 'Lọc theo giáo viên',
   })
   @IsOptional()
@@ -32,7 +32,7 @@ export class FilterCourseDto {
   teacherId?: string;
 
   @ApiPropertyOptional({
-    example: 'IELTS',
+    example: '',
     description: 'Từ khóa tìm kiếm',
   })
   @IsOptional()

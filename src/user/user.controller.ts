@@ -19,7 +19,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { UserQueryDto } from './dto/user-query.dto';
+import { UserQueryDto } from './dto/query-user.dto';
 import { Role } from '@prisma/client';
 import { ApiBearerAuth } from '@nestjs/swagger';
 @ApiBearerAuth()

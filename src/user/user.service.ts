@@ -16,7 +16,7 @@ import { StatusCode } from '../shared/utils/status';
 import { USER_DETAIL_SELECT, USER_SELECT } from './constants/user.constants';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { UserQueryDto } from './dto/user-query.dto';
+import { UserQueryDto } from './dto/query-user.dto';
 
 @Injectable()
 export class UserService {

@@ -19,7 +19,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
-import { StudentQueryDto } from './dto/student-query.dto';
+import { StudentQueryDto } from './dto/query-student.dto';
 import { Role } from '@prisma/client';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
@@ -28,6 +28,11 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 @Controller('students')
 export class StudentController {
   constructor(private readonly studentService: StudentService) {}
+
+  @Get('options')
+  getStudentOptions() {
+    return this.studentService.getStudentOptions();
+  }
 
   @Patch('me')
   @Roles(Role.STUDENT)

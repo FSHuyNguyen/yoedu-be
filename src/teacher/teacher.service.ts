@@ -9,7 +9,7 @@ import { generateCode } from '../shared/utils/generate-code';
 import { Prisma, Role, Status } from '@prisma/client';
 import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
-import { TeacherQueryDto } from './dto/teacher-query.dto';
+import { TeacherQueryDto } from './dto/query-teacher.dto';
 import { mapTeacherResponse } from './mappers/teacher.mapper';
 
 @Injectable()
@@ -38,7 +38,7 @@ export class TeacherService {
     return teacher;
   }
 
-  async getActiveTeachers() {
+  async getTeacherOptions() {
     const teachers = await this.prisma.teacher.findMany({
       where: {
         user: {

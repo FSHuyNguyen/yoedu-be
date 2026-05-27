@@ -6,6 +6,7 @@ import { UserModule } from './user/user.module';
 import { TeacherModule } from './teacher/teacher.module';
 import { UploadModule } from './upload/upload.module';
 import { CourseModule } from './course/course.module';
+import { EnrollmentModule } from './enrollment/enrollment.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { CourseModule } from './course/course.module';
     TeacherModule,
     UploadModule,
     CourseModule,
+    EnrollmentModule,
   ],
   controllers: [],
   providers: [],

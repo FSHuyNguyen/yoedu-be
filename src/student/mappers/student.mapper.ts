@@ -1,9 +1,15 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, Status } from '@prisma/client';
 import { USER_INCLUDE } from '../../user/constants/user.constants';
 
 type StudentResponse = Prisma.StudentGetPayload<{
   include: typeof USER_INCLUDE;
 }>;
+
+const mappedStatusText: Record<string, string> = {
+  [Status.ACTIVE]: 'Hoạt động',
+  [Status.INACTIVE]: 'Không hoạt động',
+  [Status.DELETED]: 'Đã xóa',
+};
 
 export const mapStudentResponse = (student: StudentResponse) => {
   return {
@@ -46,6 +52,8 @@ export const mapStudentResponse = (student: StudentResponse) => {
     role: student.user.role,
 
     status: student.user.status,
+
+    statusText: mappedStatusText[student.user.status],
 
     createdAt: student.user.createdAt,
 

@@ -14,8 +14,8 @@ import { hashPassword } from '../shared/utils/hash-password';
 import { UserService } from '../user/user.service';
 
 import { mapStudentResponse } from './mappers/student.mapper';
-import { Prisma, Role } from '@prisma/client';
-import { StudentQueryDto } from './dto/student-query.dto';
+import { Prisma, Role, Status } from '@prisma/client';
+import { StudentQueryDto } from './dto/query-student.dto';
 import { USER_INCLUDE } from '../user/constants/user.constants';
 
 @Injectable()
@@ -28,7 +28,7 @@ export class StudentService {
   /*************************************************************
    * HELPERS
    *************************************************************/
-  private async getStudentByIdOrThrow(studentId: string) {
+  public async getStudentByIdOrThrow(studentId: string) {
     const student = await this.prisma.student.findUnique({
       where: {
         id: studentId,
@@ -42,6 +42,23 @@ export class StudentService {
     }
 
     return student;
+  }
+
+  async getStudentOptions() {
+    const students = await this.prisma.student.findMany({
+      where: {
+        user: {
+          role: Role.STUDENT,
+          status: Status.ACTIVE,
+        },
+      },
+      include: USER_INCLUDE,
+    });
+
+    return students.map((student) => ({
+      value: student.id,
+      label: student.user.fullName,
+    }));
   }
 
   async create(dto: CreateStudentDto) {

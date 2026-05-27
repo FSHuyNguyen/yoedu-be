@@ -1,6 +1,6 @@
 import { IntersectionType } from '@nestjs/swagger';
 
-import { UserFilterDto } from './user-filter.dto';
+import { UserFilterDto } from './filter-user.dto';
 import { PaginationDto } from '../../shared/dto/pagination.dto';
 
 export class UserQueryDto extends IntersectionType(

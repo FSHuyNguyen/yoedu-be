@@ -64,6 +64,15 @@ export class BaseCourseDto {
   totalSessions?: number;
 
   @ApiPropertyOptional({
+    example: 48,
+    description: 'Số học sinh tối đa',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  maxStudents?: number;
+
+  @ApiPropertyOptional({
     example: '2026-06-01T00:00:00.000Z',
     description: 'Ngày bắt đầu khóa học',
   })
@@ -89,7 +98,7 @@ export class BaseCourseDto {
   status?: CourseStatus;
 
   @ApiPropertyOptional({
-    example: 'teacher-id',
+    example: null,
     description: 'ID giáo viên phụ trách',
   })
   @IsOptional()
