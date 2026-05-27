@@ -128,7 +128,6 @@ export class UserService {
   /*************************************************************
    * ADMIN
    *************************************************************/
-
   async findAll(query: UserQueryDto) {
     const { page = 1, limit = 10, status, keySearch } = query;
 

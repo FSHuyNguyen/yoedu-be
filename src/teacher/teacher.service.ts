@@ -38,56 +38,6 @@ export class TeacherService {
     return teacher;
   }
 
-  private async updateTeacherProfile(userId: string, dto: UpdateTeacherDto) {
-    await this.userService.getUserByIdOrThrow(userId);
-
-    if (dto.email) {
-      await this.userService.checkEmailExists(dto.email, userId);
-    }
-
-    await this.prisma.$transaction([
-      this.prisma.user.update({
-        where: {
-          id: userId,
-        },
-
-        data: {
-          email: dto.email,
-
-          fullName: dto.fullName,
-
-          phone: dto.phone,
-
-          address: dto.address,
-
-          avatarUrl: dto.avatarUrl,
-
-          gender: dto.gender,
-
-          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
-        },
-      }),
-
-      this.prisma.teacher.update({
-        where: {
-          userId,
-        },
-
-        data: {
-          bio: dto.bio,
-
-          specialization: dto.specialization,
-
-          qualification: dto.qualification,
-
-          yearsOfExperience: dto.yearsOfExperience,
-
-          note: dto.note,
-        },
-      }),
-    ]);
-  }
-
   async getActiveTeachers() {
     const teachers = await this.prisma.teacher.findMany({
       where: {
@@ -105,9 +55,6 @@ export class TeacherService {
     }));
   }
 
-  /*************************************************************
-   * ADMIN
-   *************************************************************/
   async create(dto: CreateTeacherDto) {
     await this.userService.checkEmailExists(dto.email);
 
@@ -155,6 +102,63 @@ export class TeacherService {
       true,
       StatusCode.CREATED,
       'Tạo giáo viên thành công',
+      null,
+    );
+  }
+
+  async update(userId: string, dto: UpdateTeacherDto) {
+    await this.userService.getUserByIdOrThrow(userId);
+
+    if (dto.email) {
+      await this.userService.checkEmailExists(dto.email, userId);
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: {
+          id: userId,
+        },
+
+        data: {
+          email: dto.email,
+
+          fullName: dto.fullName,
+
+          phone: dto.phone,
+
+          address: dto.address,
+
+          avatarUrl: dto.avatarUrl,
+
+          gender: dto.gender,
+
+          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+        },
+      }),
+
+      this.prisma.teacher.update({
+        where: {
+          userId,
+        },
+
+        data: {
+          bio: dto.bio,
+
+          specialization: dto.specialization,
+
+          qualification: dto.qualification,
+
+          yearsOfExperience: dto.yearsOfExperience,
+
+          note: dto.note,
+        },
+      }),
+    ]);
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Cập nhật thông tin giáo viên thành công',
       null,
     );
   }
@@ -240,31 +244,6 @@ export class TeacherService {
       StatusCode.OK,
       'Lấy thông tin giáo viên thành công',
       mapTeacherResponse(teacher),
-    );
-  }
-
-  async updateTeacherByAdmin(userId: string, dto: UpdateTeacherDto) {
-    await this.updateTeacherProfile(userId, dto);
-
-    return CustomResponse(
-      true,
-      StatusCode.OK,
-      'Cập nhật thông tin giáo viên thành công',
-      null,
-    );
-  }
-
-  /*************************************************************
-   * TEACHER
-   *************************************************************/
-  async updateMe(userId: string, dto: UpdateTeacherDto) {
-    await this.updateTeacherProfile(userId, dto);
-
-    return CustomResponse(
-      true,
-      StatusCode.OK,
-      'Cập nhật thông tin giáo viên thành công',
-      null,
     );
   }
 }

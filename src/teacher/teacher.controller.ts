@@ -34,7 +34,7 @@ export class TeacherController {
   @Patch('me')
   @Roles(Role.TEACHER)
   updateMe(@CurrentUser() user: any, @Body() dto: UpdateTeacherDto) {
-    return this.teacherService.updateMe(String(user.id), dto);
+    return this.teacherService.update(String(user.id), dto);
   }
 
   // POST /teachers
@@ -60,7 +60,7 @@ export class TeacherController {
 
   @Patch(':id')
   @Roles(Role.ADMIN)
-  updateTeacherByAdmin(@Param('id') id: string, @Body() dto: UpdateTeacherDto) {
-    return this.teacherService.updateTeacherByAdmin(id, dto);
+  update(@Param('id') id: string, @Body() dto: UpdateTeacherDto) {
+    return this.teacherService.update(id, dto);
   }
 }

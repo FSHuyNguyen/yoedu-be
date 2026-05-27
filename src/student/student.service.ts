@@ -44,7 +44,62 @@ export class StudentService {
     return student;
   }
 
-  private async updateStudentProfile(userId: string, dto: UpdateStudentDto) {
+  async create(dto: CreateStudentDto) {
+    await this.userService.checkEmailExists(dto.email);
+
+    const hashedPassword = await hashPassword(dto.password);
+
+    await this.prisma.user.create({
+      data: {
+        email: dto.email,
+
+        password: hashedPassword,
+
+        fullName: dto.fullName,
+
+        phone: dto.phone,
+
+        address: dto.address,
+
+        avatarUrl: dto.avatarUrl,
+
+        gender: dto.gender,
+
+        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+
+        role: Role.STUDENT,
+
+        student: {
+          create: {
+            studentCode: generateCode(Role.STUDENT),
+
+            parentName: dto.parentName,
+            parentPhone: dto.parentPhone,
+
+            schoolName: dto.schoolName,
+            grade: dto.grade,
+
+            entryAcademicLevel: dto.entryAcademicLevel,
+
+            latestTestScore: dto.latestTestScore,
+
+            learningGoal: dto.learningGoal,
+
+            note: dto.note,
+          },
+        },
+      },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.CREATED,
+      'Tạo học viên thành công',
+      null,
+    );
+  }
+
+  async update(userId: string, dto: UpdateStudentDto) {
     await this.userService.getUserByIdOrThrow(userId);
 
     if (dto.email) {
@@ -98,62 +153,11 @@ export class StudentService {
         },
       }),
     ]);
-  }
-
-  /*************************************************************
-   * ADMIN
-   *************************************************************/
-  async create(dto: CreateStudentDto) {
-    await this.userService.checkEmailExists(dto.email);
-
-    const hashedPassword = await hashPassword(dto.password);
-
-    await this.prisma.user.create({
-      data: {
-        email: dto.email,
-
-        password: hashedPassword,
-
-        fullName: dto.fullName,
-
-        phone: dto.phone,
-
-        address: dto.address,
-
-        avatarUrl: dto.avatarUrl,
-
-        gender: dto.gender,
-
-        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
-
-        role: Role.STUDENT,
-
-        student: {
-          create: {
-            studentCode: generateCode(Role.STUDENT),
-
-            parentName: dto.parentName,
-            parentPhone: dto.parentPhone,
-
-            schoolName: dto.schoolName,
-            grade: dto.grade,
-
-            entryAcademicLevel: dto.entryAcademicLevel,
-
-            latestTestScore: dto.latestTestScore,
-
-            learningGoal: dto.learningGoal,
-
-            note: dto.note,
-          },
-        },
-      },
-    });
 
     return CustomResponse(
       true,
-      StatusCode.CREATED,
-      'Tạo học viên thành công',
+      StatusCode.OK,
+      'Cập nhật thông tin học viên thành công',
       null,
     );
   }
@@ -239,31 +243,6 @@ export class StudentService {
       StatusCode.OK,
       'Lấy thông tin học viên thành công',
       mapStudentResponse(student),
-    );
-  }
-
-  async updateStudentByAdmin(userId: string, dto: UpdateStudentDto) {
-    await this.updateStudentProfile(userId, dto);
-
-    return CustomResponse(
-      true,
-      StatusCode.OK,
-      'Cập nhật thông tin học viên thành công',
-      null,
-    );
-  }
-
-  /*************************************************************
-   * STUDENT
-   *************************************************************/
-  async updateMe(userId: string, dto: UpdateStudentDto) {
-    await this.updateStudentProfile(userId, dto);
-
-    return CustomResponse(
-      true,
-      StatusCode.OK,
-      'Cập nhật thông tin học viên thành công',
-      null,
     );
   }
 }

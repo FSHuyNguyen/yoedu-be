@@ -32,7 +32,7 @@ export class StudentController {
   @Patch('me')
   @Roles(Role.STUDENT)
   updateMe(@CurrentUser() user: any, @Body() dto: UpdateStudentDto) {
-    return this.studentService.updateMe(String(user.id), dto);
+    return this.studentService.update(String(user.id), dto);
   }
 
   // POST /students
@@ -57,8 +57,8 @@ export class StudentController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN)
-  updateStudentByAdmin(@Param('id') id: string, @Body() dto: UpdateStudentDto) {
-    return this.studentService.updateStudentByAdmin(id, dto);
+  @Roles(Role.ADMIN, Role.STUDENT)
+  update(@Param('id') id: string, @Body() dto: UpdateStudentDto) {
+    return this.studentService.update(id, dto);
   }
 }
