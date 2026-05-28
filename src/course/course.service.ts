@@ -87,6 +87,8 @@ export class CourseService {
       status,
       level,
       teacherId,
+      startDate,
+      endDate,
       keySearch,
     } = query;
 
@@ -128,6 +130,18 @@ export class CourseService {
           },
         },
       ];
+    }
+
+    if (startDate) {
+      where.startDate = {
+        gte: new Date(startDate),
+      };
+    }
+
+    if (endDate) {
+      where.endDate = {
+        lte: new Date(endDate),
+      };
     }
 
     const [courses, total] = await Promise.all([

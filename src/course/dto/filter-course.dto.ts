@@ -33,6 +33,22 @@ export class FilterCourseDto {
 
   @ApiPropertyOptional({
     example: '',
+    description: 'Ngày bắt đầu khóa học',
+  })
+  @IsOptional()
+  @IsString()
+  startDate?: string;
+
+  @ApiPropertyOptional({
+    example: '',
+    description: 'Ngày kết thúc khóa học',
+  })
+  @IsOptional()
+  @IsString()
+  endDate?: string;
+
+  @ApiPropertyOptional({
+    example: '',
     description: 'Từ khóa tìm kiếm',
   })
   @IsOptional()
