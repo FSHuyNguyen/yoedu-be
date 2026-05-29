@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { CourseStatus, Prisma, Role } from '@prisma/client';
+import { ActivityType, CourseStatus, Prisma, Role } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -61,14 +61,24 @@ export class CourseService {
       await this.teacherService.getTeacherByIdOrThrow(dto.teacherId);
     }
 
-    await this.prismaService.course.create({
-      data: {
-        ...dto,
-        courseCode: generateCode('Course'),
-        startDate: dto.startDate ? new Date(dto.startDate) : undefined,
-        endDate: dto.endDate ? new Date(dto.endDate) : undefined,
-      },
-      include: COURSE_INCLUDE,
+    await this.prismaService.$transaction(async (tx) => {
+      const course = await tx.course.create({
+        data: {
+          ...dto,
+          courseCode: generateCode('Course'),
+          startDate: dto.startDate ? new Date(dto.startDate) : undefined,
+          endDate: dto.endDate ? new Date(dto.endDate) : undefined,
+        },
+        include: COURSE_INCLUDE,
+      });
+
+      await tx.activityLog.create({
+        data: {
+          type: ActivityType.COURSE_CREATED,
+          title: 'Khóa học mới',
+          description: `${course.name} đã được thêm vào hệ thống`,
+        },
+      });
     });
 
     return CustomResponse(

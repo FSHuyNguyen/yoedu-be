@@ -42,6 +42,10 @@ export const mapCourseResponse = (course: CourseResponse) => {
 
     endDate: course.endDate,
 
+    startTime: course.startTime,
+
+    endTime: course.endTime,
+
     teacherId: course.teacherId,
 
     teacherName: course.teacher ? course.teacher.user.fullName : '',

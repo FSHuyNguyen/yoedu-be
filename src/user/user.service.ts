@@ -20,13 +20,13 @@ import { UserQueryDto } from './dto/query-user.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prismaService: PrismaService) {}
 
   /*************************************************************
    * HELPERS
    *************************************************************/
   async getUserByIdOrThrow(userId: string, isSelectFull = false) {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prismaService.user.findUnique({
       where: {
         id: userId,
       },
@@ -41,7 +41,7 @@ export class UserService {
   }
 
   async checkEmailExists(email: string, userId?: string) {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prismaService.user.findUnique({
       where: {
         email,
       },
@@ -73,7 +73,7 @@ export class UserService {
       await this.checkEmailExists(dto.email, userId);
     }
 
-    await this.prisma.user.update({
+    await this.prismaService.user.update({
       where: {
         id: userId,
       },
@@ -112,7 +112,7 @@ export class UserService {
 
     const hashedPassword = await hashPassword(dto.newPassword);
 
-    await this.prisma.user.update({
+    await this.prismaService.user.update({
       where: {
         id: userId,
       },
@@ -158,7 +158,7 @@ export class UserService {
     }
 
     const [users, total] = await Promise.all([
-      this.prisma.user.findMany({
+      this.prismaService.user.findMany({
         where,
 
         skip,
@@ -171,7 +171,7 @@ export class UserService {
         },
       }),
 
-      this.prisma.user.count({
+      this.prismaService.user.count({
         where,
       }),
     ]);
@@ -210,7 +210,7 @@ export class UserService {
     const newStatus =
       user.status === Status.ACTIVE ? Status.INACTIVE : Status.ACTIVE;
 
-    await this.prisma.user.update({
+    await this.prismaService.user.update({
       where: {
         id: userId,
       },
@@ -235,7 +235,7 @@ export class UserService {
       throw new BadRequestException('Người dùng đã bị xóa trước đó');
     }
 
-    await this.prisma.user.update({
+    await this.prismaService.user.update({
       where: {
         id: userId,
       },

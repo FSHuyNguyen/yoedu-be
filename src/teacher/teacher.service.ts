@@ -6,7 +6,7 @@ import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { hashPassword } from '../shared/utils/hash-password';
 import { generateCode } from '../shared/utils/generate-code';
-import { Prisma, Role, Status } from '@prisma/client';
+import { ActivityType, Prisma, Role, Status } from '@prisma/client';
 import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
 import { TeacherQueryDto } from './dto/query-teacher.dto';
@@ -15,7 +15,7 @@ import { mapTeacherResponse } from './mappers/teacher.mapper';
 @Injectable()
 export class TeacherService {
   constructor(
-    private prisma: PrismaService,
+    private prismaService: PrismaService,
     private userService: UserService,
   ) {}
 
@@ -23,7 +23,7 @@ export class TeacherService {
    * HELPERS
    *************************************************************/
   public async getTeacherByIdOrThrow(teacherId: string) {
-    const teacher = await this.prisma.teacher.findUnique({
+    const teacher = await this.prismaService.teacher.findUnique({
       where: {
         id: teacherId,
       },
@@ -39,7 +39,7 @@ export class TeacherService {
   }
 
   async getTeacherOptions() {
-    const teachers = await this.prisma.teacher.findMany({
+    const teachers = await this.prismaService.teacher.findMany({
       where: {
         user: {
           role: Role.TEACHER,
@@ -60,42 +60,52 @@ export class TeacherService {
 
     const hashedPassword = await hashPassword(dto.password);
 
-    await this.prisma.user.create({
-      data: {
-        email: dto.email,
+    await this.prismaService.$transaction(async (tx) => {
+      const teacher = await tx.user.create({
+        data: {
+          email: dto.email,
 
-        password: hashedPassword,
+          password: hashedPassword,
 
-        fullName: dto.fullName,
+          fullName: dto.fullName,
 
-        phone: dto.phone,
+          phone: dto.phone,
 
-        address: dto.address,
+          address: dto.address,
 
-        avatarUrl: dto.avatarUrl,
+          avatarUrl: dto.avatarUrl,
 
-        gender: dto.gender,
+          gender: dto.gender,
 
-        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
 
-        role: Role.TEACHER,
+          role: Role.TEACHER,
 
-        teacher: {
-          create: {
-            teacherCode: generateCode(Role.TEACHER),
+          teacher: {
+            create: {
+              teacherCode: generateCode(Role.TEACHER),
 
-            bio: dto.bio,
+              bio: dto.bio,
 
-            specialization: dto.specialization,
+              specialization: dto.specialization,
 
-            qualification: dto.qualification,
+              qualification: dto.qualification,
 
-            yearsOfExperience: dto.yearsOfExperience,
+              yearsOfExperience: dto.yearsOfExperience,
 
-            note: dto.note,
+              note: dto.note,
+            },
           },
         },
-      },
+      });
+
+      await tx.activityLog.create({
+        data: {
+          type: ActivityType.TEACHER_CREATED,
+          title: 'Giáo viên mới',
+          description: `${teacher.fullName} đã được thêm vào hệ thống`,
+        },
+      });
     });
 
     return CustomResponse(
@@ -113,8 +123,8 @@ export class TeacherService {
       await this.userService.checkEmailExists(dto.email, userId);
     }
 
-    await this.prisma.$transaction([
-      this.prisma.user.update({
+    await this.prismaService.$transaction([
+      this.prismaService.user.update({
         where: {
           id: userId,
         },
@@ -136,7 +146,7 @@ export class TeacherService {
         },
       }),
 
-      this.prisma.teacher.update({
+      this.prismaService.teacher.update({
         where: {
           userId,
         },
@@ -199,7 +209,7 @@ export class TeacherService {
     };
 
     const [teachers, total] = await Promise.all([
-      this.prisma.teacher.findMany({
+      this.prismaService.teacher.findMany({
         where,
 
         skip,
@@ -214,7 +224,7 @@ export class TeacherService {
         },
       }),
 
-      this.prisma.teacher.count({
+      this.prismaService.teacher.count({
         where,
       }),
     ]);

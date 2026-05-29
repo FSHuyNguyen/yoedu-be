@@ -4,7 +4,13 @@ import {
   Injectable,
 } from '@nestjs/common';
 
-import { CourseStatus, EnrollmentStatus, Prisma, Role } from '@prisma/client';
+import {
+  ActivityType,
+  CourseStatus,
+  EnrollmentStatus,
+  Prisma,
+  Role,
+} from '@prisma/client';
 
 import { StudentService } from '../student/student.service';
 import { CourseService } from '../course/course.service';
@@ -80,13 +86,23 @@ export class EnrollmentService {
       throw new BadRequestException('Học viên đã đăng ký khóa học này');
     }
 
-    await this.prismaService.enrollment.create({
-      data: {
-        ...dto,
-        originalPrice: course.price,
-      },
+    await this.prismaService.$transaction(async (tx) => {
+      const enrollment = await tx.enrollment.create({
+        data: {
+          ...dto,
+          originalPrice: course.price,
+        },
 
-      include: ENROLLMENT_INCLUDE,
+        include: ENROLLMENT_INCLUDE,
+      });
+
+      await tx.activityLog.create({
+        data: {
+          type: ActivityType.STUDENT_ENROLLED,
+          title: 'Đăng ký khóa học mới',
+          description: `${enrollment.student.user.fullName} đã đăng ký khóa học ${enrollment.course.name}`,
+        },
+      });
     });
 
     return CustomResponse(

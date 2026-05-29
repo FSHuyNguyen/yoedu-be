@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "courses" ALTER COLUMN "endTime" SET DATA TYPE TEXT,
+ALTER COLUMN "startTime" SET DATA TYPE TEXT;

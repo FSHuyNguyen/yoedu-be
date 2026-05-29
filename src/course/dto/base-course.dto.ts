@@ -89,6 +89,20 @@ export class BaseCourseDto {
   endDate?: string;
 
   @ApiPropertyOptional({
+    example: '2026-06-01T00:00:00.000Z',
+    description: 'Thời gian bắt đầu khóa học',
+  })
+  @IsOptional()
+  startTime?: string;
+
+  @ApiPropertyOptional({
+    example: '2026-08-30T00:00:00.000Z',
+    description: 'Thời gian kết thúc khóa học',
+  })
+  @IsOptional()
+  endTime?: string;
+
+  @ApiPropertyOptional({
     enum: CourseStatus,
     example: CourseStatus.DRAFT,
     description: 'Trạng thái khóa học',

@@ -14,14 +14,14 @@ import { hashPassword } from '../shared/utils/hash-password';
 import { UserService } from '../user/user.service';
 
 import { mapStudentResponse } from './mappers/student.mapper';
-import { Prisma, Role, Status } from '@prisma/client';
+import { ActivityType, Prisma, Role, Status } from '@prisma/client';
 import { StudentQueryDto } from './dto/query-student.dto';
 import { USER_INCLUDE } from '../user/constants/user.constants';
 
 @Injectable()
 export class StudentService {
   constructor(
-    private prisma: PrismaService,
+    private prismaService: PrismaService,
     private userService: UserService,
   ) {}
 
@@ -29,7 +29,7 @@ export class StudentService {
    * HELPERS
    *************************************************************/
   public async getStudentByIdOrThrow(studentId: string) {
-    const student = await this.prisma.student.findUnique({
+    const student = await this.prismaService.student.findUnique({
       where: {
         id: studentId,
       },
@@ -45,7 +45,7 @@ export class StudentService {
   }
 
   async getStudentOptions() {
-    const students = await this.prisma.student.findMany({
+    const students = await this.prismaService.student.findMany({
       where: {
         user: {
           role: Role.STUDENT,
@@ -66,46 +66,56 @@ export class StudentService {
 
     const hashedPassword = await hashPassword(dto.password);
 
-    await this.prisma.user.create({
-      data: {
-        email: dto.email,
+    await this.prismaService.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          email: dto.email,
 
-        password: hashedPassword,
+          password: hashedPassword,
 
-        fullName: dto.fullName,
+          fullName: dto.fullName,
 
-        phone: dto.phone,
+          phone: dto.phone,
 
-        address: dto.address,
+          address: dto.address,
 
-        avatarUrl: dto.avatarUrl,
+          avatarUrl: dto.avatarUrl,
 
-        gender: dto.gender,
+          gender: dto.gender,
 
-        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
 
-        role: Role.STUDENT,
+          role: Role.STUDENT,
 
-        student: {
-          create: {
-            studentCode: generateCode(Role.STUDENT),
+          student: {
+            create: {
+              studentCode: generateCode(Role.STUDENT),
 
-            parentName: dto.parentName,
-            parentPhone: dto.parentPhone,
+              parentName: dto.parentName,
+              parentPhone: dto.parentPhone,
 
-            schoolName: dto.schoolName,
-            grade: dto.grade,
+              schoolName: dto.schoolName,
+              grade: dto.grade,
 
-            entryAcademicLevel: dto.entryAcademicLevel,
+              entryAcademicLevel: dto.entryAcademicLevel,
 
-            latestTestScore: dto.latestTestScore,
+              latestTestScore: dto.latestTestScore,
 
-            learningGoal: dto.learningGoal,
+              learningGoal: dto.learningGoal,
 
-            note: dto.note,
+              note: dto.note,
+            },
           },
         },
-      },
+      });
+
+      await tx.activityLog.create({
+        data: {
+          type: ActivityType.STUDENT_CREATED,
+          title: 'Học viên mới',
+          description: `${user.fullName} đã được thêm vào hệ thống`,
+        },
+      });
     });
 
     return CustomResponse(
@@ -123,8 +133,8 @@ export class StudentService {
       await this.userService.checkEmailExists(dto.email, userId);
     }
 
-    await this.prisma.$transaction([
-      this.prisma.user.update({
+    await this.prismaService.$transaction([
+      this.prismaService.user.update({
         where: {
           id: userId,
         },
@@ -146,7 +156,7 @@ export class StudentService {
         },
       }),
 
-      this.prisma.student.update({
+      this.prismaService.student.update({
         where: {
           userId,
         },
@@ -215,7 +225,7 @@ export class StudentService {
     };
 
     const [students, total] = await Promise.all([
-      this.prisma.student.findMany({
+      this.prismaService.student.findMany({
         where,
 
         skip,
@@ -230,7 +240,7 @@ export class StudentService {
         },
       }),
 
-      this.prisma.student.count({
+      this.prismaService.student.count({
         where,
       }),
     ]);

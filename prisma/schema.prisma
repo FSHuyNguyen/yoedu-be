@@ -44,6 +44,13 @@ enum EnrollmentStatus {
   CANCELLED
 }
 
+enum ActivityType {
+  STUDENT_CREATED
+  TEACHER_CREATED
+  COURSE_CREATED
+  STUDENT_ENROLLED
+}
+
 model User {
   id            String    @id @default(uuid())
 
@@ -182,6 +189,12 @@ model Course {
   // ngày kết thúc
   endDate               DateTime?
 
+  // Giờ bắt đầu
+  startTime             String?
+
+  // Giờ kết thúc
+  endTime               String?
+
   // trạng thái khóa học
   status                CourseStatus        @default(DRAFT)
 
@@ -234,4 +247,17 @@ model Enrollment {
   @@unique([studentId, courseId])
 
   @@map("enrollments")
+}
+
+model ActivityLog {
+  id          String       @id @default(uuid())
+
+  type        ActivityType
+
+  title       String
+  description String?
+
+  createdAt   DateTime     @default(now())
+
+  @@map("activity_logs")
 }
