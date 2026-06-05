@@ -244,4 +244,67 @@ export class TeacherService {
       mapTeacherResponse(teacher),
     );
   }
+
+  async active(teacherId: string) {
+    await this.getTeacherByIdOrThrow(teacherId);
+
+    await this.prismaService.teacher.update({
+      where: {
+        id: teacherId,
+      },
+
+      data: {
+        status: TeacherStatus.ACTIVE,
+      },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Thay đổi trạng thái thành công',
+      null,
+    );
+  }
+
+  async unActive(teacherId: string) {
+    await this.getTeacherByIdOrThrow(teacherId);
+
+    await this.prismaService.teacher.update({
+      where: {
+        id: teacherId,
+      },
+
+      data: {
+        status: TeacherStatus.PAUSED,
+      },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Thay đổi trạng thái thành công',
+      null,
+    );
+  }
+
+  async remove(teacherId: string) {
+    await this.getTeacherByIdOrThrow(teacherId);
+
+    await this.prismaService.teacher.update({
+      where: {
+        id: teacherId,
+      },
+
+      data: {
+        status: TeacherStatus.INACTIVE,
+      },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Xóa giáo viên thành công',
+      null,
+    );
+  }
 }

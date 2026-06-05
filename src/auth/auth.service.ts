@@ -9,6 +9,7 @@ import { UserService } from '../user/user.service';
 import { Role, Status } from '@prisma/client';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { USER_DETAIL_SELECT } from '../user/constants/user.constants';
 
 @Injectable()
 export class AuthService {
@@ -41,11 +42,13 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-      include: {
-        student: true,
-        teacher: true,
-        parent: true,
+      where: {
+        email: dto.email,
+      },
+      select: {
+        password: true,
+
+        ...USER_DETAIL_SELECT,
       },
     });
 
@@ -72,9 +75,11 @@ export class AuthService {
       role: user.role,
     });
 
+    const { password, ...userResponse } = user;
+
     return CustomResponse(true, StatusCode.OK, 'Đăng nhập thành công', {
       accessToken: token,
-      user,
+      user: userResponse,
     });
   }
 }

@@ -253,4 +253,62 @@ export class StudentService {
       mapStudentResponse(student),
     );
   }
+
+  async active(studentId: string) {
+    await this.getStudentByIdOrThrow(studentId);
+
+    await this.prismaService.student.update({
+      where: {
+        id: studentId,
+      },
+
+      data: {
+        status: StudentStatus.ACTIVE,
+      },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Thay đổi trạng thái thành công',
+      null,
+    );
+  }
+
+  async unActive(studentId: string) {
+    await this.getStudentByIdOrThrow(studentId);
+
+    await this.prismaService.student.update({
+      where: {
+        id: studentId,
+      },
+
+      data: {
+        status: StudentStatus.PAUSED,
+      },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Thay đổi trạng thái thành công',
+      null,
+    );
+  }
+
+  async remove(studentId: string) {
+    await this.getStudentByIdOrThrow(studentId);
+
+    await this.prismaService.student.update({
+      where: {
+        id: studentId,
+      },
+
+      data: {
+        status: StudentStatus.DROPPED,
+      },
+    });
+
+    return CustomResponse(true, StatusCode.OK, 'Học viên đã bị xóa', null);
+  }
 }

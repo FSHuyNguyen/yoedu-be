@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Gender } from '@prisma/client';
 
 import {
@@ -9,6 +10,10 @@ import {
 } from 'class-validator';
 
 export class BaseUserDto {
+  @ApiProperty({
+    example: 'student@example.com',
+    description: 'Email của học viên',
+  })
   @IsEmail()
   email!: string;
 

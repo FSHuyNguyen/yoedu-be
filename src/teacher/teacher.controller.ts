@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -62,5 +63,23 @@ export class TeacherController {
   @Roles(Role.ADMIN, Role.STAFF)
   update(@Param('id') id: string, @Body() dto: UpdateTeacherDto) {
     return this.teacherService.update(id, dto);
+  }
+
+  @Patch(':id/active')
+  @Roles(Role.ADMIN, Role.STAFF)
+  active(@Param('id') id: string) {
+    return this.teacherService.active(id);
+  }
+
+  @Patch(':id/inactive')
+  @Roles(Role.ADMIN, Role.STAFF)
+  unActive(@Param('id') id: string) {
+    return this.teacherService.unActive(id);
+  }
+
+  @Delete(':id')
+  @Roles(Role.ADMIN, Role.STAFF)
+  remove(@Param('id') id: string) {
+    return this.teacherService.remove(id);
   }
 }

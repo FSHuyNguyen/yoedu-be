@@ -37,9 +37,9 @@ export const mapTeacherResponse = (teacher: TeacherResponse) => {
 
     note: teacher.note,
 
-    status: teacher.status,
+    teacherStatus: teacher.status,
 
-    statusText: mappedStatusText[teacher.status],
+    teacherStatusText: mappedStatusText[teacher.status],
 
     email: teacher.user.email,
 

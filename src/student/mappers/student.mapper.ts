@@ -13,8 +13,8 @@ type StudentResponse = Prisma.StudentGetPayload<{
 }>;
 
 const mappedStudentStatusText: Record<StudentStatus, string> = {
-  ACTIVE: 'Đang học',
-  PAUSED: 'Tạm ngưng',
+  ACTIVE: 'Đang tham gia',
+  PAUSED: 'Đã tạm ngưng',
   DROPPED: 'Đã nghỉ học',
 };
 
