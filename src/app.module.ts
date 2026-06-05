@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
-import { StudentModule } from './student/student.module';
 import { UserModule } from './user/user.module';
+import { StudentModule } from './student/student.module';
 import { TeacherModule } from './teacher/teacher.module';
 import { UploadModule } from './upload/upload.module';
 import { CourseModule } from './course/course.module';
-import { EnrollmentModule } from './enrollment/enrollment.module';
-import { DashboardModule } from './dashboard/dashboard.module';
+// import { UploadModule } from './upload/upload.module';
+// import { CourseModule } from './course/course.module';
+// import { EnrollmentModule } from './enrollment/enrollment.module';
+// import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -15,13 +17,13 @@ import { DashboardModule } from './dashboard/dashboard.module';
       isGlobal: true,
     }),
     AuthModule,
-    StudentModule,
     UserModule,
+    StudentModule,
     TeacherModule,
     UploadModule,
     CourseModule,
-    EnrollmentModule,
-    DashboardModule,
+    // EnrollmentModule,
+    // DashboardModule,
   ],
   controllers: [],
   providers: [],

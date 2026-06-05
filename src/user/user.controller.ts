@@ -61,11 +61,16 @@ export class UserController {
     return this.userService.findById(id);
   }
 
-  // PATCH /users/:id/change-status
-  @Patch(':id/change-status')
+  @Patch(':id/active')
   @Roles(Role.ADMIN)
-  changeStatus(@Param('id') id: string) {
-    return this.userService.changeStatus(id);
+  active(@Param('id') id: string) {
+    return this.userService.active(id);
+  }
+
+  @Patch(':id/inactive')
+  @Roles(Role.ADMIN)
+  unActive(@Param('id') id: string) {
+    return this.userService.unActive(id);
   }
 
   // DELETE /users/:id

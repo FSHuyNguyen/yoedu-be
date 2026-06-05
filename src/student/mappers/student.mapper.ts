@@ -1,14 +1,21 @@
-import { Prisma, Status } from '@prisma/client';
-import { USER_INCLUDE } from '../../user/constants/user.constants';
+import { Prisma, StudentStatus } from '@prisma/client';
+import { BASE_USER_INCLUDE } from '../../user/constants/user.constants';
+
+export const STUDENT_INCLUDE = {
+  ...BASE_USER_INCLUDE,
+  parent: {
+    include: BASE_USER_INCLUDE,
+  },
+} satisfies Prisma.StudentInclude;
 
 type StudentResponse = Prisma.StudentGetPayload<{
-  include: typeof USER_INCLUDE;
+  include: typeof STUDENT_INCLUDE;
 }>;
 
-const mappedStatusText: Record<string, string> = {
-  [Status.ACTIVE]: 'Hoạt động',
-  [Status.INACTIVE]: 'Không hoạt động',
-  [Status.DELETED]: 'Đã xóa',
+const mappedStudentStatusText: Record<StudentStatus, string> = {
+  ACTIVE: 'Đang học',
+  PAUSED: 'Tạm ngưng',
+  DROPPED: 'Đã nghỉ học',
 };
 
 export const mapStudentResponse = (student: StudentResponse) => {
@@ -17,23 +24,27 @@ export const mapStudentResponse = (student: StudentResponse) => {
 
     userId: student.user.id,
 
+    parentId: student.parentId,
+
+    parentName: student.parent ? student.parent.user.fullName : null,
+
     studentCode: student.studentCode,
 
-    parentName: student.parentName,
-    parentPhone: student.parentPhone,
-
     schoolName: student.schoolName,
-    grade: student.grade,
+
+    gradeLevel: student.gradeLevel,
 
     entryAcademicLevel: student.entryAcademicLevel,
 
-    latestTestScore: student.latestTestScore,
+    latestTestScore: Number(student.latestTestScore),
 
     learningGoal: student.learningGoal,
 
     note: student.note,
 
-    joinedAt: student.joinedAt,
+    studentStatus: student.status,
+
+    studentStatusText: mappedStudentStatusText[student.status],
 
     email: student.user.email,
 
@@ -51,12 +62,10 @@ export const mapStudentResponse = (student: StudentResponse) => {
 
     role: student.user.role,
 
-    status: student.user.status,
+    userStatus: student.user.status,
 
-    statusText: mappedStatusText[student.user.status],
+    createdAt: student.createdAt,
 
-    createdAt: student.user.createdAt,
-
-    updatedAt: student.user.updatedAt,
+    updatedAt: student.updatedAt,
   };
 };

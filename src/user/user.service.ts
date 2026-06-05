@@ -82,7 +82,9 @@ export class UserService {
         email: dto.email,
 
         fullName: dto.fullName,
+
         phone: dto.phone,
+
         address: dto.address,
 
         avatarUrl: dto.avatarUrl,
@@ -204,11 +206,8 @@ export class UserService {
     );
   }
 
-  async changeStatus(userId: string) {
-    const user = await this.getUserByIdOrThrow(userId);
-
-    const newStatus =
-      user.status === Status.ACTIVE ? Status.INACTIVE : Status.ACTIVE;
+  async active(userId: string) {
+    await this.getUserByIdOrThrow(userId);
 
     await this.prismaService.user.update({
       where: {
@@ -216,7 +215,28 @@ export class UserService {
       },
 
       data: {
-        status: newStatus,
+        status: Status.ACTIVE,
+      },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Thay đổi trạng thái thành công',
+      null,
+    );
+  }
+
+  async unActive(userId: string) {
+    await this.getUserByIdOrThrow(userId);
+
+    await this.prismaService.user.update({
+      where: {
+        id: userId,
+      },
+
+      data: {
+        status: Status.INACTIVE,
       },
     });
 
@@ -229,11 +249,7 @@ export class UserService {
   }
 
   async remove(userId: string) {
-    const user = await this.getUserByIdOrThrow(userId);
-
-    if (user.status === Status.DELETED) {
-      throw new BadRequestException('Người dùng đã bị xóa trước đó');
-    }
+    await this.getUserByIdOrThrow(userId);
 
     await this.prismaService.user.update({
       where: {

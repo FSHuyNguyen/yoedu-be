@@ -1,22 +1,14 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class BaseStudentDto {
   @ApiPropertyOptional({
-    example: 'Nguyễn Văn A',
-    description: 'Tên phụ huynh',
+    example: null,
+    description: 'ID phụ huynh',
   })
   @IsOptional()
   @IsString()
-  parentName?: string;
-
-  @ApiPropertyOptional({
-    example: '0901234567',
-    description: 'Số điện thoại phụ huynh',
-  })
-  @IsOptional()
-  @IsString()
-  parentPhone?: string;
+  parentId?: string;
 
   @ApiPropertyOptional({
     example: 'THPT Nguyễn Du',
@@ -32,7 +24,7 @@ export class BaseStudentDto {
   })
   @IsOptional()
   @IsString()
-  grade?: string;
+  gradeLevel?: string;
 
   @ApiPropertyOptional({
     example: 'Khá',
@@ -47,7 +39,16 @@ export class BaseStudentDto {
     description: 'Điểm bài test gần nhất',
   })
   @IsOptional()
-  @IsNumber()
+  @IsNumber(
+    {
+      maxDecimalPlaces: 2,
+    },
+    {
+      message: 'latestTestScore chỉ được tối đa 2 chữ số thập phân',
+    },
+  )
+  @Min(0)
+  @Max(99.99)
   latestTestScore?: number;
 
   @ApiPropertyOptional({

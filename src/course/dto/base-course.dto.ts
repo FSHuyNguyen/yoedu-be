@@ -1,15 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-
-import { CourseLevel, CourseStatus } from '@prisma/client';
-
-import {
-  IsDateString,
-  IsEnum,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
-
+import { CourseLevel } from '@prisma/client';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class BaseCourseDto {
@@ -30,7 +21,7 @@ export class BaseCourseDto {
 
   @ApiPropertyOptional({
     example: 'https://cdn.yoedu.vn/course-thumbnail.jpg',
-    description: 'Thumbnail khóa học',
+    description: 'Ảnh đại diện khóa học',
   })
   @IsOptional()
   @IsString()
@@ -52,7 +43,7 @@ export class BaseCourseDto {
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  price?: number;
+  tuitionFee?: number;
 
   @ApiPropertyOptional({
     example: 24,
@@ -64,8 +55,8 @@ export class BaseCourseDto {
   totalSessions?: number;
 
   @ApiPropertyOptional({
-    example: 48,
-    description: 'Số học sinh tối đa',
+    example: 25,
+    description: 'Số lượng học viên tối đa',
   })
   @IsOptional()
   @Type(() => Number)
@@ -73,47 +64,8 @@ export class BaseCourseDto {
   maxStudents?: number;
 
   @ApiPropertyOptional({
-    example: '2026-06-01T00:00:00.000Z',
-    description: 'Ngày bắt đầu khóa học',
-  })
-  @IsOptional()
-  @IsDateString()
-  startDate?: string;
-
-  @ApiPropertyOptional({
-    example: '2026-08-30T00:00:00.000Z',
-    description: 'Ngày kết thúc khóa học',
-  })
-  @IsOptional()
-  @IsDateString()
-  endDate?: string;
-
-  @ApiPropertyOptional({
-    example: '2026-06-01T00:00:00.000Z',
-    description: 'Thời gian bắt đầu khóa học',
-  })
-  @IsOptional()
-  startTime?: string;
-
-  @ApiPropertyOptional({
-    example: '2026-08-30T00:00:00.000Z',
-    description: 'Thời gian kết thúc khóa học',
-  })
-  @IsOptional()
-  endTime?: string;
-
-  @ApiPropertyOptional({
-    enum: CourseStatus,
-    example: CourseStatus.DRAFT,
-    description: 'Trạng thái khóa học',
-  })
-  @IsOptional()
-  @IsEnum(CourseStatus)
-  status?: CourseStatus;
-
-  @ApiPropertyOptional({
-    example: null,
-    description: 'ID giáo viên phụ trách',
+    example: 'teacher-id',
+    description: 'Giáo viên phụ trách khóa học',
   })
   @IsOptional()
   @IsString()

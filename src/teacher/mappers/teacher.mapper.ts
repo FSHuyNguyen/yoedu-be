@@ -1,14 +1,20 @@
-import { Prisma, Status } from '@prisma/client';
-import { USER_INCLUDE } from '../../user/constants/user.constants';
+import { Prisma, TeacherStatus } from '@prisma/client';
+import { BASE_USER_INCLUDE } from '../../user/constants/user.constants';
 
 type TeacherResponse = Prisma.TeacherGetPayload<{
-  include: typeof USER_INCLUDE;
+  include: typeof BASE_USER_INCLUDE;
 }>;
 
-const mappedStatusText: Record<string, string> = {
-  [Status.ACTIVE]: 'Hoạt động',
-  [Status.INACTIVE]: 'Không hoạt động',
-  [Status.DELETED]: 'Đã xóa',
+const mappedStatusText: Record<TeacherStatus, string> = {
+  ACTIVE: 'Đang giảng dạy',
+  PAUSED: 'Tạm nghỉ',
+  INACTIVE: 'Ngừng công tác',
+};
+
+const mappedTeacherRoleText: Record<string, string> = {
+  TEACHER: 'Giáo viên',
+  ASSISTANT: 'Trợ giảng',
+  BOTH: 'Giáo viên kiêm trợ giảng',
 };
 
 export const mapTeacherResponse = (teacher: TeacherResponse) => {
@@ -19,7 +25,9 @@ export const mapTeacherResponse = (teacher: TeacherResponse) => {
 
     teacherCode: teacher.teacherCode,
 
-    bio: teacher.bio,
+    teacherRole: teacher.teacherRole,
+
+    teacherRoleText: mappedTeacherRoleText[teacher.teacherRole],
 
     specialization: teacher.specialization,
 
@@ -29,7 +37,9 @@ export const mapTeacherResponse = (teacher: TeacherResponse) => {
 
     note: teacher.note,
 
-    joinedAt: teacher.joinedAt,
+    status: teacher.status,
+
+    statusText: mappedStatusText[teacher.status],
 
     email: teacher.user.email,
 
@@ -47,12 +57,12 @@ export const mapTeacherResponse = (teacher: TeacherResponse) => {
 
     role: teacher.user.role,
 
-    status: teacher.user.status,
+    userStatus: teacher.user.status,
 
-    statusText: mappedStatusText[teacher.user.status],
+    lastLoginAt: teacher.user.lastLoginAt,
 
-    createdAt: teacher.user.createdAt,
+    createdAt: teacher.createdAt,
 
-    updatedAt: teacher.user.updatedAt,
+    updatedAt: teacher.updatedAt,
   };
 };

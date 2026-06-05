@@ -1,15 +1,17 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import { TeacherRole } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class BaseTeacherDto {
   @ApiPropertyOptional({
-    example: 'Giáo viên IELTS với hơn 5 năm kinh nghiệm giảng dạy',
-    description: 'Giới thiệu ngắn về giáo viên',
+    enum: TeacherRole,
+    example: TeacherRole.TEACHER,
+    description: 'Vai trò giáo viên',
   })
   @IsOptional()
-  @IsString()
-  bio?: string;
+  @IsEnum(TeacherRole)
+  teacherRole?: TeacherRole;
 
   @ApiPropertyOptional({
     example: 'IELTS, TOEIC',
@@ -29,7 +31,7 @@ export class BaseTeacherDto {
 
   @ApiPropertyOptional({
     example: 5,
-    description: 'Số năm kinh nghiệm',
+    description: 'Số năm kinh nghiệm giảng dạy',
   })
   @IsOptional()
   @Type(() => Number)

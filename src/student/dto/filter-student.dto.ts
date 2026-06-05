@@ -1,16 +1,16 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Status } from '@prisma/client';
+import { StudentStatus } from '@prisma/client';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export class StudentFilterDto {
   @ApiPropertyOptional({
-    enum: Status,
-    example: Status.ACTIVE,
+    enum: StudentStatus,
+    example: StudentStatus.ACTIVE,
     description: 'Trạng thái học viên',
   })
   @IsOptional()
-  @IsEnum(Status)
-  status?: Status;
+  @IsEnum(StudentStatus)
+  status?: StudentStatus;
 
   @ApiPropertyOptional({
     example: '',

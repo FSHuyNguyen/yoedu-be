@@ -38,6 +38,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             id: true,
           },
         },
+
+        parent: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
@@ -52,6 +58,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
       teacherId: user.teacher?.id ?? null,
       studentId: user.student?.id ?? null,
+      parentId: user.parent?.id ?? null,
     };
   }
 }

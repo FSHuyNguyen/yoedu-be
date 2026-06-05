@@ -38,28 +38,28 @@ export class TeacherController {
   }
 
   // POST /teachers
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.STAFF)
   @Post()
   create(@Body() dto: CreateTeacherDto) {
     return this.teacherService.create(dto);
   }
 
   // GET /teachers?page=1&limit=10&keySearch=huy
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.STAFF)
   @Get()
   findAll(@Query() query: TeacherQueryDto) {
     return this.teacherService.findAll(query);
   }
 
   // GET /teachers/:id
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.STAFF)
   @Get(':id')
   findById(@Param('id') id: string) {
     return this.teacherService.findById(id);
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.STAFF)
   update(@Param('id') id: string, @Body() dto: UpdateTeacherDto) {
     return this.teacherService.update(id, dto);
   }

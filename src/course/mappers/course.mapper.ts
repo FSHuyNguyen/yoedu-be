@@ -1,9 +1,9 @@
 import { CourseStatus, Prisma } from '@prisma/client';
-import { USER_INCLUDE } from '../../user/constants/user.constants';
+import { BASE_USER_INCLUDE } from '../../user/constants/user.constants';
 
 export const COURSE_INCLUDE = {
   teacher: {
-    include: USER_INCLUDE,
+    include: BASE_USER_INCLUDE,
   },
 } satisfies Prisma.CourseInclude;
 
@@ -11,11 +11,11 @@ type CourseResponse = Prisma.CourseGetPayload<{
   include: typeof COURSE_INCLUDE;
 }>;
 
-const mappedStatusText: Record<string, string> = {
-  [CourseStatus.DRAFT]: 'Bản nháp',
-  [CourseStatus.OPEN]: 'Đang mở',
-  [CourseStatus.CLOSED]: 'Đã đóng',
-  [CourseStatus.DELETED]: 'Đã xóa',
+const mappedStatusText: Record<CourseStatus, string> = {
+  DRAFT: 'Bản nháp',
+  OPEN: 'Đang mở',
+  CLOSED: 'Đã đóng',
+  DELETED: 'Đã xóa',
 };
 
 export const mapCourseResponse = (course: CourseResponse) => {
@@ -32,30 +32,23 @@ export const mapCourseResponse = (course: CourseResponse) => {
 
     level: course.level,
 
-    price: course.price,
+    tuitionFee: course.tuitionFee,
 
     totalSessions: course.totalSessions,
 
     maxStudents: course.maxStudents,
 
-    startDate: course.startDate,
-
-    endDate: course.endDate,
-
-    startTime: course.startTime,
-
-    endTime: course.endTime,
-
     teacherId: course.teacherId,
 
-    teacherName: course.teacher ? course.teacher.user.fullName : '',
+    teacherCode: course.teacher?.teacherCode ?? null,
+
+    teacherName: course.teacher?.user?.fullName ?? null,
 
     status: course.status,
 
     statusText: mappedStatusText[course.status],
 
     createdAt: course.createdAt,
-
     updatedAt: course.updatedAt,
   };
 };

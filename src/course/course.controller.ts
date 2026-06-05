@@ -38,7 +38,7 @@ export class CourseController {
   }
 
   @Post()
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Tạo khóa học',
   })
@@ -47,7 +47,7 @@ export class CourseController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.TEACHER)
+  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
   @ApiOperation({
     summary: 'Lấy danh sách khóa học',
   })
@@ -56,7 +56,7 @@ export class CourseController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
   @ApiOperation({
     summary: 'Lấy chi tiết khóa học',
   })
@@ -65,7 +65,7 @@ export class CourseController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Cập nhật khóa học',
   })
@@ -73,18 +73,26 @@ export class CourseController {
     return this.courseService.update(id, dto);
   }
 
-  // PATCH /courses/:id/change-status
-  @Patch(':id/change-status')
-  @Roles(Role.ADMIN)
+  @Patch(':id/open')
+  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
-    summary: 'Thay đổi trạng thái khóa học',
+    summary: 'Mở khóa học',
   })
-  async changeStatus(@Param('id') id: string) {
-    return this.courseService.changeStatus(id);
+  async openCourse(@Param('id') id: string) {
+    return this.courseService.openCourse(id);
+  }
+
+  @Patch(':id/close')
+  @Roles(Role.ADMIN, Role.STAFF)
+  @ApiOperation({
+    summary: 'Đóng khóa học',
+  })
+  async closedCourse(@Param('id') id: string) {
+    return this.courseService.closedCourse(id);
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Xóa khóa học',
   })

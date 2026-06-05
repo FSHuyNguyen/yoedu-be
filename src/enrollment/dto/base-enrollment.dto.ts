@@ -38,7 +38,7 @@ export class BaseEnrollmentDto {
 
   @ApiPropertyOptional({
     enum: EnrollmentStatus,
-    example: EnrollmentStatus.STUDYING,
+    example: EnrollmentStatus.ACTIVE,
     description: 'Trạng thái đăng ký',
   })
   @IsOptional()

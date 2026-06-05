@@ -41,28 +41,28 @@ export class StudentController {
   }
 
   // POST /students
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.STAFF)
   @Post()
   create(@Body() dto: CreateStudentDto) {
     return this.studentService.create(dto);
   }
 
   // GET /students?page=1&limit=10&keySearch=huy
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
   @Get()
   findAll(@Query() query: StudentQueryDto) {
     return this.studentService.findAll(query);
   }
 
   // GET /students/:id
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
   @Get(':id')
   findById(@Param('id') id: string) {
     return this.studentService.findById(id);
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.STUDENT)
+  @Roles(Role.ADMIN, Role.STAFF)
   update(@Param('id') id: string, @Body() dto: UpdateStudentDto) {
     return this.studentService.update(id, dto);
   }

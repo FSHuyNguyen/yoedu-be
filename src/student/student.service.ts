@@ -13,10 +13,9 @@ import { hashPassword } from '../shared/utils/hash-password';
 
 import { UserService } from '../user/user.service';
 
-import { mapStudentResponse } from './mappers/student.mapper';
-import { ActivityType, Prisma, Role, Status } from '@prisma/client';
+import { mapStudentResponse, STUDENT_INCLUDE } from './mappers/student.mapper';
+import { Prisma, Role, Status, StudentStatus } from '@prisma/client';
 import { StudentQueryDto } from './dto/query-student.dto';
-import { USER_INCLUDE } from '../user/constants/user.constants';
 
 @Injectable()
 export class StudentService {
@@ -34,7 +33,7 @@ export class StudentService {
         id: studentId,
       },
 
-      include: USER_INCLUDE,
+      include: STUDENT_INCLUDE,
     });
 
     if (!student) {
@@ -47,12 +46,13 @@ export class StudentService {
   async getStudentOptions() {
     const students = await this.prismaService.student.findMany({
       where: {
+        status: StudentStatus.ACTIVE,
         user: {
           role: Role.STUDENT,
           status: Status.ACTIVE,
         },
       },
-      include: USER_INCLUDE,
+      include: STUDENT_INCLUDE,
     });
 
     return students.map((student) => ({
@@ -66,56 +66,44 @@ export class StudentService {
 
     const hashedPassword = await hashPassword(dto.password);
 
-    await this.prismaService.$transaction(async (tx) => {
-      const user = await tx.user.create({
-        data: {
-          email: dto.email,
+    await this.prismaService.user.create({
+      data: {
+        email: dto.email,
 
-          password: hashedPassword,
+        password: hashedPassword,
 
-          fullName: dto.fullName,
+        fullName: dto.fullName,
 
-          phone: dto.phone,
+        phone: dto.phone,
 
-          address: dto.address,
+        address: dto.address,
 
-          avatarUrl: dto.avatarUrl,
+        avatarUrl: dto.avatarUrl,
 
-          gender: dto.gender,
+        gender: dto.gender,
 
-          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
 
-          role: Role.STUDENT,
+        role: Role.STUDENT,
 
-          student: {
-            create: {
-              studentCode: generateCode(Role.STUDENT),
+        student: {
+          create: {
+            studentCode: generateCode(Role.STUDENT),
 
-              parentName: dto.parentName,
-              parentPhone: dto.parentPhone,
+            schoolName: dto.schoolName,
 
-              schoolName: dto.schoolName,
-              grade: dto.grade,
+            gradeLevel: dto.gradeLevel,
 
-              entryAcademicLevel: dto.entryAcademicLevel,
+            entryAcademicLevel: dto.entryAcademicLevel,
 
-              latestTestScore: dto.latestTestScore,
+            latestTestScore: dto.latestTestScore,
 
-              learningGoal: dto.learningGoal,
+            learningGoal: dto.learningGoal,
 
-              note: dto.note,
-            },
+            note: dto.note,
           },
         },
-      });
-
-      await tx.activityLog.create({
-        data: {
-          type: ActivityType.STUDENT_CREATED,
-          title: 'Học viên mới',
-          description: `${user.fullName} đã được thêm vào hệ thống`,
-        },
-      });
+      },
     });
 
     return CustomResponse(
@@ -162,13 +150,9 @@ export class StudentService {
         },
 
         data: {
-          parentName: dto.parentName,
-
-          parentPhone: dto.parentPhone,
-
           schoolName: dto.schoolName,
 
-          grade: dto.grade,
+          gradeLevel: dto.gradeLevel,
 
           entryAcademicLevel: dto.entryAcademicLevel,
 
@@ -198,10 +182,6 @@ export class StudentService {
       role: Role.STUDENT,
     };
 
-    if (status) {
-      userWhere.status = status;
-    }
-
     if (keySearch) {
       userWhere.OR = [
         {
@@ -222,6 +202,7 @@ export class StudentService {
 
     const where: Prisma.StudentWhereInput = {
       user: userWhere,
+      status: status ? status : undefined,
     };
 
     const [students, total] = await Promise.all([
@@ -231,7 +212,7 @@ export class StudentService {
         skip,
         take: limit,
 
-        include: USER_INCLUDE,
+        include: STUDENT_INCLUDE,
 
         orderBy: {
           user: {

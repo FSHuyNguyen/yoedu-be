@@ -6,7 +6,7 @@ import { IsEnum, IsOptional, IsString } from 'class-validator';
 export class FilterEnrollmentDto {
   @ApiPropertyOptional({
     enum: EnrollmentStatus,
-    example: EnrollmentStatus.STUDYING,
+    example: EnrollmentStatus.ACTIVE,
     description: 'Trạng thái đăng ký',
   })
   @IsOptional()

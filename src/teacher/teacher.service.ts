@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserService } from '../user/user.service';
-import { USER_INCLUDE } from '../user/constants/user.constants';
+import { BASE_USER_INCLUDE } from '../user/constants/user.constants';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { hashPassword } from '../shared/utils/hash-password';
 import { generateCode } from '../shared/utils/generate-code';
-import { ActivityType, Prisma, Role, Status } from '@prisma/client';
+import { Prisma, Role, Status, TeacherStatus } from '@prisma/client';
 import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
 import { TeacherQueryDto } from './dto/query-teacher.dto';
@@ -28,7 +28,7 @@ export class TeacherService {
         id: teacherId,
       },
 
-      include: USER_INCLUDE,
+      include: BASE_USER_INCLUDE,
     });
 
     if (!teacher) {
@@ -41,12 +41,13 @@ export class TeacherService {
   async getTeacherOptions() {
     const teachers = await this.prismaService.teacher.findMany({
       where: {
+        status: TeacherStatus.ACTIVE,
         user: {
           role: Role.TEACHER,
           status: Status.ACTIVE,
         },
       },
-      include: USER_INCLUDE,
+      include: BASE_USER_INCLUDE,
     });
 
     return teachers.map((teacher) => ({
@@ -60,52 +61,42 @@ export class TeacherService {
 
     const hashedPassword = await hashPassword(dto.password);
 
-    await this.prismaService.$transaction(async (tx) => {
-      const teacher = await tx.user.create({
-        data: {
-          email: dto.email,
+    await this.prismaService.user.create({
+      data: {
+        email: dto.email,
 
-          password: hashedPassword,
+        password: hashedPassword,
 
-          fullName: dto.fullName,
+        fullName: dto.fullName,
 
-          phone: dto.phone,
+        phone: dto.phone,
 
-          address: dto.address,
+        address: dto.address,
 
-          avatarUrl: dto.avatarUrl,
+        avatarUrl: dto.avatarUrl,
 
-          gender: dto.gender,
+        gender: dto.gender,
 
-          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
 
-          role: Role.TEACHER,
+        role: Role.TEACHER,
 
-          teacher: {
-            create: {
-              teacherCode: generateCode(Role.TEACHER),
+        teacher: {
+          create: {
+            teacherCode: generateCode(Role.TEACHER),
 
-              bio: dto.bio,
+            teacherRole: dto.teacherRole,
 
-              specialization: dto.specialization,
+            specialization: dto.specialization,
 
-              qualification: dto.qualification,
+            qualification: dto.qualification,
 
-              yearsOfExperience: dto.yearsOfExperience,
+            yearsOfExperience: dto.yearsOfExperience,
 
-              note: dto.note,
-            },
+            note: dto.note,
           },
         },
-      });
-
-      await tx.activityLog.create({
-        data: {
-          type: ActivityType.TEACHER_CREATED,
-          title: 'Giáo viên mới',
-          description: `${teacher.fullName} đã được thêm vào hệ thống`,
-        },
-      });
+      },
     });
 
     return CustomResponse(
@@ -152,7 +143,7 @@ export class TeacherService {
         },
 
         data: {
-          bio: dto.bio,
+          teacherRole: dto.teacherRole,
 
           specialization: dto.specialization,
 
@@ -182,10 +173,6 @@ export class TeacherService {
       role: Role.TEACHER,
     };
 
-    if (status) {
-      userWhere.status = status;
-    }
-
     if (keySearch) {
       userWhere.OR = [
         {
@@ -206,6 +193,7 @@ export class TeacherService {
 
     const where: Prisma.TeacherWhereInput = {
       user: userWhere,
+      status: status ? status : undefined,
     };
 
     const [teachers, total] = await Promise.all([
@@ -215,7 +203,7 @@ export class TeacherService {
         skip,
         take: limit,
 
-        include: USER_INCLUDE,
+        include: BASE_USER_INCLUDE,
 
         orderBy: {
           user: {

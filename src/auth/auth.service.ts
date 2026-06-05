@@ -28,7 +28,6 @@ export class AuthService {
         email: dto.email,
         password: hashedPassword,
         role: Role.STUDENT,
-
         student: {
           create: {
             studentCode: generateCode(Role.STUDENT),
@@ -46,6 +45,7 @@ export class AuthService {
       include: {
         student: true,
         teacher: true,
+        parent: true,
       },
     });
 
@@ -74,6 +74,7 @@ export class AuthService {
 
     return CustomResponse(true, StatusCode.OK, 'Đăng nhập thành công', {
       accessToken: token,
+      user,
     });
   }
 }

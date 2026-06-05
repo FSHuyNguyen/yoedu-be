@@ -7,5 +7,5 @@ export const generateCode = (prefix: string) => {
   const year = String(now.getFullYear()).slice(-2);
   const timestamp = now.getTime();
 
-  return `Yoedu-${prefix}-${day}${month}${year}-${timestamp}`;
+  return `${prefix}-${day}${month}${year}-${timestamp}`;
 };

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { ActivityType, CourseStatus, Prisma, Role } from '@prisma/client';
+import { CourseStatus, Prisma, Role } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -61,24 +61,12 @@ export class CourseService {
       await this.teacherService.getTeacherByIdOrThrow(dto.teacherId);
     }
 
-    await this.prismaService.$transaction(async (tx) => {
-      const course = await tx.course.create({
-        data: {
-          ...dto,
-          courseCode: generateCode('Course'),
-          startDate: dto.startDate ? new Date(dto.startDate) : undefined,
-          endDate: dto.endDate ? new Date(dto.endDate) : undefined,
-        },
-        include: COURSE_INCLUDE,
-      });
-
-      await tx.activityLog.create({
-        data: {
-          type: ActivityType.COURSE_CREATED,
-          title: 'Khóa học mới',
-          description: `${course.name} đã được thêm vào hệ thống`,
-        },
-      });
+    await this.prismaService.course.create({
+      data: {
+        ...dto,
+        courseCode: generateCode('Course'),
+      },
+      include: COURSE_INCLUDE,
     });
 
     return CustomResponse(
@@ -97,8 +85,6 @@ export class CourseService {
       status,
       level,
       teacherId,
-      startDate,
-      endDate,
       keySearch,
     } = query;
 
@@ -140,18 +126,6 @@ export class CourseService {
           },
         },
       ];
-    }
-
-    if (startDate) {
-      where.startDate = {
-        gte: new Date(startDate),
-      };
-    }
-
-    if (endDate) {
-      where.endDate = {
-        lte: new Date(endDate),
-      };
     }
 
     const [courses, total] = await Promise.all([
@@ -229,15 +203,8 @@ export class CourseService {
     );
   }
 
-  async changeStatus(courseId: string) {
-    const course = await this.getCourseByIdOrThrow(courseId);
-
-    const newStatus =
-      course.status === CourseStatus.DRAFT
-        ? CourseStatus.OPEN
-        : course.status === CourseStatus.OPEN
-          ? CourseStatus.CLOSED
-          : CourseStatus.OPEN;
+  async openCourse(courseId: string) {
+    await this.getCourseByIdOrThrow(courseId);
 
     await this.prismaService.course.update({
       where: {
@@ -245,7 +212,28 @@ export class CourseService {
       },
 
       data: {
-        status: newStatus,
+        status: CourseStatus.OPEN,
+      },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Thay đổi trạng thái thành công',
+      null,
+    );
+  }
+
+  async closedCourse(courseId: string) {
+    await this.getCourseByIdOrThrow(courseId);
+
+    await this.prismaService.course.update({
+      where: {
+        id: courseId,
+      },
+
+      data: {
+        status: CourseStatus.CLOSED,
       },
     });
 
