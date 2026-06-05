@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { CourseStatus, Prisma, Role } from '@prisma/client';
+import { CourseStatus, Prisma, Course } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -12,28 +12,20 @@ import { generateCode } from '../shared/utils/generate-code';
 
 import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
-import { TeacherService } from '../teacher/teacher.service';
-import { COURSE_INCLUDE, mapCourseResponse } from './mappers/course.mapper';
+import { mapCourseResponse } from './mappers/course.mapper';
 
 @Injectable()
 export class CourseService {
-  constructor(
-    private readonly prismaService: PrismaService,
-    private teacherService: TeacherService,
-  ) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   /*************************************************************
    * HELPERS
    *************************************************************/
-  public async getCourseByIdOrThrow(
-    courseId: string,
-  ): Promise<Prisma.CourseGetPayload<{ include: typeof COURSE_INCLUDE }>> {
+  public async getCourseByIdOrThrow(courseId: string): Promise<Course> {
     const course = await this.prismaService.course.findUnique({
       where: {
         id: courseId,
       },
-
-      include: COURSE_INCLUDE,
     });
 
     if (!course) {
@@ -57,16 +49,11 @@ export class CourseService {
   }
 
   async create(dto: CreateCourseDto) {
-    if (dto.teacherId) {
-      await this.teacherService.getTeacherByIdOrThrow(dto.teacherId);
-    }
-
     await this.prismaService.course.create({
       data: {
         ...dto,
         courseCode: generateCode('Course'),
       },
-      include: COURSE_INCLUDE,
     });
 
     return CustomResponse(
@@ -84,7 +71,6 @@ export class CourseService {
 
       status,
       level,
-      teacherId,
       keySearch,
     } = query;
 
@@ -92,22 +78,12 @@ export class CourseService {
 
     const where: Prisma.CourseWhereInput = {};
 
-    // ADMIN -> xem tất cả
-    // TEACHER -> chỉ xem course của mình
-    if (user.role === Role.TEACHER) {
-      where.teacherId = user.teacherId;
-    }
-
     if (status) {
       where.status = status;
     }
 
     if (level) {
       where.level = level;
-    }
-
-    if (teacherId) {
-      where.teacherId = teacherId;
     }
 
     if (keySearch) {
@@ -139,8 +115,6 @@ export class CourseService {
         orderBy: {
           createdAt: 'desc',
         },
-
-        include: COURSE_INCLUDE,
       }),
 
       this.prismaService.course.count({
@@ -179,10 +153,6 @@ export class CourseService {
   async update(id: string, dto: UpdateCourseDto) {
     await this.getCourseByIdOrThrow(id);
 
-    if (dto.teacherId) {
-      await this.teacherService.getTeacherByIdOrThrow(dto.teacherId);
-    }
-
     await this.prismaService.course.update({
       where: {
         id,
@@ -191,8 +161,6 @@ export class CourseService {
       data: {
         ...dto,
       },
-
-      include: COURSE_INCLUDE,
     });
 
     return CustomResponse(

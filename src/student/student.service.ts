@@ -275,7 +275,7 @@ export class StudentService {
     );
   }
 
-  async unActive(studentId: string) {
+  async paused(studentId: string) {
     await this.getStudentByIdOrThrow(studentId);
 
     await this.prismaService.student.update({

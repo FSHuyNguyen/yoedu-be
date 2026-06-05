@@ -74,10 +74,10 @@ export class StudentController {
     return this.studentService.active(id);
   }
 
-  @Patch(':id/inactive')
+  @Patch(':id/paused')
   @Roles(Role.ADMIN, Role.STAFF)
-  unActive(@Param('id') id: string) {
-    return this.studentService.unActive(id);
+  paused(@Param('id') id: string) {
+    return this.studentService.paused(id);
   }
 
   @Delete(':id')

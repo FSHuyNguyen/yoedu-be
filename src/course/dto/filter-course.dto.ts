@@ -25,14 +25,6 @@ export class FilterCourseDto {
 
   @ApiPropertyOptional({
     example: '',
-    description: 'Lọc theo giáo viên',
-  })
-  @IsOptional()
-  @IsString()
-  teacherId?: string;
-
-  @ApiPropertyOptional({
-    example: '',
     description: 'Từ khóa tìm kiếm',
   })
   @IsOptional()

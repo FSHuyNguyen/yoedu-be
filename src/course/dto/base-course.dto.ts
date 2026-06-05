@@ -62,12 +62,4 @@ export class BaseCourseDto {
   @Type(() => Number)
   @IsNumber()
   maxStudents?: number;
-
-  @ApiPropertyOptional({
-    example: 'teacher-id',
-    description: 'Giáo viên phụ trách khóa học',
-  })
-  @IsOptional()
-  @IsString()
-  teacherId?: string;
 }

@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { StatusCode } from '../shared/utils/status';
+import { CustomResponse } from '../shared/utils/response';
 // import { CourseStatus } from '@prisma/client';
 // import { CustomResponse } from '../shared/utils/response';
 // import { StatusCode } from '../shared/utils/status';
@@ -160,4 +162,19 @@ export class DashboardService {
   //     },
   //   );
   // }
+
+  getDashboardData() {
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Lấy dữ liệu dashboard thành công',
+      {
+        statData: [],
+
+        recentActivityData: [],
+
+        todayClasses: [],
+      },
+    );
+  }
 }

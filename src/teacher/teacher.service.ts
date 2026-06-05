@@ -266,7 +266,7 @@ export class TeacherService {
     );
   }
 
-  async unActive(teacherId: string) {
+  async paused(teacherId: string) {
     await this.getTeacherByIdOrThrow(teacherId);
 
     await this.prismaService.teacher.update({

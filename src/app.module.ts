@@ -6,10 +6,8 @@ import { StudentModule } from './student/student.module';
 import { TeacherModule } from './teacher/teacher.module';
 import { UploadModule } from './upload/upload.module';
 import { CourseModule } from './course/course.module';
-// import { UploadModule } from './upload/upload.module';
-// import { CourseModule } from './course/course.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 // import { EnrollmentModule } from './enrollment/enrollment.module';
-// import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -18,12 +16,12 @@ import { CourseModule } from './course/course.module';
     }),
     AuthModule,
     UserModule,
+    DashboardModule,
     StudentModule,
     TeacherModule,
     UploadModule,
     CourseModule,
     // EnrollmentModule,
-    // DashboardModule,
   ],
   controllers: [],
   providers: [],
