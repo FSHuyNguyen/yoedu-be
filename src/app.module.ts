@@ -8,6 +8,7 @@ import { UploadModule } from './upload/upload.module';
 import { CourseModule } from './course/course.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 // import { EnrollmentModule } from './enrollment/enrollment.module';
+import { ParentModule } from './parent/parent.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     TeacherModule,
     UploadModule,
     CourseModule,
+    ParentModule,
     // EnrollmentModule,
   ],
   controllers: [],

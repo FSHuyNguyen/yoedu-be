@@ -12,14 +12,17 @@ import {
 export class BaseUserDto {
   @ApiProperty({
     example: 'student@example.com',
-    description: 'Email của học viên',
+    description: 'Email của user',
   })
   @IsEmail()
   email!: string;
 
-  @IsOptional()
+  @ApiProperty({
+    example: 'Nguyên Văn A',
+    description: 'Họ và tên của user',
+  })
   @IsString()
-  fullName?: string;
+  fullName!: string;
 
   @IsOptional()
   @IsString()
