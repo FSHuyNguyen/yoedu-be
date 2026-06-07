@@ -28,6 +28,7 @@ export class AuthService {
       data: {
         email: dto.email,
         password: hashedPassword,
+        fullName: dto.fullName,
         role: Role.STUDENT,
         student: {
           create: {

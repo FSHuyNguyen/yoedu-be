@@ -3,6 +3,13 @@ import { IsEmail, IsString, MinLength } from 'class-validator';
 
 export class RegisterDto {
   @ApiProperty({
+    example: 'Nguyen Van A',
+    description: 'Họ và tên người dùng',
+  })
+  @IsString()
+  fullName!: string;
+
+  @ApiProperty({
     example: 'user@gmail.com',
     description: 'Email đăng ký',
   })

@@ -17,6 +17,7 @@ import { USER_DETAIL_SELECT, USER_SELECT } from './constants/user.constants';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UserQueryDto } from './dto/query-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UserService {
@@ -130,8 +131,80 @@ export class UserService {
   /*************************************************************
    * ADMIN
    *************************************************************/
+  async create(dto: CreateUserDto) {
+    await this.checkEmailExists(dto.email);
+
+    const hashedPassword = await hashPassword(dto.password);
+
+    await this.prismaService.user.create({
+      data: {
+        email: dto.email,
+
+        password: hashedPassword,
+
+        fullName: dto.fullName,
+
+        phone: dto.phone,
+
+        address: dto.address,
+
+        avatarUrl: dto.avatarUrl,
+
+        gender: dto.gender,
+
+        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+
+        // role: Role.STUDENT,
+      },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.CREATED,
+      'Tạo tài khoản thành công',
+      null,
+    );
+  }
+
+  async update(userId: string, dto: UpdateUserDto) {
+    await this.getUserByIdOrThrow(userId);
+
+    if (dto.email) {
+      await this.checkEmailExists(dto.email, userId);
+    }
+
+    await this.prismaService.user.update({
+      where: {
+        id: userId,
+      },
+
+      data: {
+        email: dto.email,
+
+        fullName: dto.fullName,
+
+        phone: dto.phone,
+
+        address: dto.address,
+
+        avatarUrl: dto.avatarUrl,
+
+        gender: dto.gender,
+
+        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
+      },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Cập nhật thông tin tài khoản thành công',
+      null,
+    );
+  }
+
   async findAll(query: UserQueryDto) {
-    const { page = 1, limit = 10, status, keySearch } = query;
+    const { page = 1, limit = 10, status, role, keySearch } = query;
 
     const skip = (page - 1) * limit;
 
@@ -139,6 +212,10 @@ export class UserService {
 
     if (status) {
       where.status = status;
+    }
+
+    if (role) {
+      where.role = role;
     }
 
     if (keySearch) {
@@ -169,7 +246,7 @@ export class UserService {
         select: USER_SELECT,
 
         orderBy: {
-          createdAt: 'desc',
+          createdAt: 'asc',
         },
       }),
 

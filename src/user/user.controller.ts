@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -22,60 +23,66 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { UserQueryDto } from './dto/query-user.dto';
 import { Role } from '@prisma/client';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { CreateUserDto } from './dto/create-user.dto';
 @ApiBearerAuth()
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  // GET /users/me
   @Get('me')
   getMe(@CurrentUser() user: any) {
     return this.userService.getMe(String(user.id));
   }
 
-  // PATCH /users/me
   @Patch('me')
   updateMe(@CurrentUser() user: any, @Body() dto: UpdateUserDto) {
     return this.userService.updateMe(String(user.id), dto);
   }
 
-  // PATCH /users/change-password
   @Patch('change-password')
   changePassword(@CurrentUser() user: any, @Body() dto: ChangePasswordDto) {
     return this.userService.changePassword(String(user.id), dto);
   }
 
-  // GET /users
-  // GET /users?status=ACTIVE
   @Get()
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.STAFF)
   findAll(@Query() query: UserQueryDto) {
     return this.userService.findAll(query);
   }
 
-  // GET /users/:id
+  @Post()
+  @Roles(Role.ADMIN, Role.STAFF)
+  create(@Body() createUserDto: CreateUserDto) {
+    return this.userService.create(createUserDto);
+  }
+
+  @Patch(':id')
+  @Roles(Role.ADMIN, Role.STAFF)
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.update(id, updateUserDto);
+  }
+
   @Get(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.STAFF)
   findById(@Param('id') id: string) {
     return this.userService.findById(id);
   }
 
   @Patch(':id/active')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.STAFF)
   active(@Param('id') id: string) {
     return this.userService.active(id);
   }
 
   @Patch(':id/inactive')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.STAFF)
   unActive(@Param('id') id: string) {
     return this.userService.unActive(id);
   }
 
-  // DELETE /users/:id
   @Delete(':id')
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.STAFF)
   remove(@Param('id') id: string) {
     return this.userService.remove(id);
   }

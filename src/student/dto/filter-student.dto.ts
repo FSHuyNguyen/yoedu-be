@@ -14,7 +14,7 @@ export class StudentFilterDto {
 
   @ApiPropertyOptional({
     example: '',
-    description: 'Từ khóa tìm kiếm theo tên, email hoặc số điện thoại',
+    description: 'Từ khóa tìm kiếm theo tên, email',
   })
   @IsOptional()
   @IsString()

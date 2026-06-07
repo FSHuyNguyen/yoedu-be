@@ -15,7 +15,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Role } from '@prisma/client';
 
-@Controller('parent')
+@Controller('parents')
 export class ParentController {
   constructor(private readonly parentService: ParentService) {}
 
