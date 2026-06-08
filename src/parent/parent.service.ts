@@ -3,7 +3,7 @@ import { UserService } from '../user/user.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, Role, Status } from '@prisma/client';
 import { CreateParentDto } from './dto/create-parent.dto';
-import { hashPassword } from '../shared/utils/hash-password';
+import { encrypt } from '../shared/utils/bcrypt';
 import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
 import { UpdateParentDto } from './dto/update-parent.dto';
@@ -55,7 +55,7 @@ export class ParentService {
   async create(dto: CreateParentDto) {
     await this.userService.checkEmailExists(dto.email);
 
-    const hashedPassword = await hashPassword(dto.password);
+    const hashedPassword = await encrypt(dto.password);
 
     await this.prismaService.user.create({
       data: {

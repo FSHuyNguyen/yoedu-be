@@ -21,6 +21,8 @@ export const USER_SELECT = {
 
   lastLoginAt: true,
 
+  refreshToken: true,
+
   createdAt: true,
 
   updatedAt: true,

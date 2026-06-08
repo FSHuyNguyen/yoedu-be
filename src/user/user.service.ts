@@ -8,7 +8,7 @@ import { Prisma, Status } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 
-import { comparePassword, hashPassword } from '../shared/utils/hash-password';
+import { compare, encrypt } from '../shared/utils/bcrypt';
 
 import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
@@ -107,13 +107,13 @@ export class UserService {
   async changePassword(userId: string, dto: ChangePasswordDto) {
     const user = await this.getUserByIdOrThrow(userId, true);
 
-    const isMatch = await comparePassword(dto.oldPassword, user.password);
+    const isMatch = await compare(dto.oldPassword, user.password);
 
     if (!isMatch) {
       throw new BadRequestException('Mật khẩu cũ không đúng');
     }
 
-    const hashedPassword = await hashPassword(dto.newPassword);
+    const hashedPassword = await encrypt(dto.newPassword);
 
     await this.prismaService.user.update({
       where: {
@@ -134,7 +134,7 @@ export class UserService {
   async create(dto: CreateUserDto) {
     await this.checkEmailExists(dto.email);
 
-    const hashedPassword = await hashPassword(dto.password);
+    const hashedPassword = await encrypt(dto.password);
 
     await this.prismaService.user.create({
       data: {

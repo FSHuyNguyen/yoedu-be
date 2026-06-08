@@ -151,6 +151,8 @@ model User {
 
   lastLoginAt DateTime?
 
+  refreshToken String?
+
   role Role @default(STUDENT)
 
   status Status @default(ACTIVE)

@@ -4,7 +4,7 @@ import { UserService } from '../user/user.service';
 import { BASE_USER_INCLUDE } from '../user/constants/user.constants';
 import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
-import { hashPassword } from '../shared/utils/hash-password';
+import { encrypt } from '../shared/utils/bcrypt';
 import { generateCode } from '../shared/utils/generate-code';
 import { Prisma, Role, Status, TeacherStatus } from '@prisma/client';
 import { CustomResponse } from '../shared/utils/response';
@@ -59,7 +59,7 @@ export class TeacherService {
   async create(dto: CreateTeacherDto) {
     await this.userService.checkEmailExists(dto.email);
 
-    const hashedPassword = await hashPassword(dto.password);
+    const hashedPassword = await encrypt(dto.password);
 
     await this.prismaService.user.create({
       data: {

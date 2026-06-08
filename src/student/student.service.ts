@@ -9,7 +9,7 @@ import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
 
 import { generateCode } from '../shared/utils/generate-code';
-import { hashPassword } from '../shared/utils/hash-password';
+import { encrypt } from '../shared/utils/bcrypt';
 
 import { UserService } from '../user/user.service';
 
@@ -64,7 +64,7 @@ export class StudentService {
   async create(dto: CreateStudentDto) {
     await this.userService.checkEmailExists(dto.email);
 
-    const hashedPassword = await hashPassword(dto.password);
+    const hashedPassword = await encrypt(dto.password);
 
     await this.prismaService.user.create({
       data: {
