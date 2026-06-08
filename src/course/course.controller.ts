@@ -24,7 +24,6 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { CourseQueryDto } from './dto/query-course.dto';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -51,8 +50,8 @@ export class CourseController {
   @ApiOperation({
     summary: 'Lấy danh sách khóa học',
   })
-  async findAll(@CurrentUser() user: any, @Query() query: CourseQueryDto) {
-    return this.courseService.findAll(user, query);
+  async findAll(@Query() query: CourseQueryDto) {
+    return this.courseService.findAll(query);
   }
 
   @Get(':id')

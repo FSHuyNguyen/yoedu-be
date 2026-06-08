@@ -64,7 +64,7 @@ export class CourseService {
     );
   }
 
-  async findAll(user: any, query: CourseQueryDto) {
+  async findAll(query: CourseQueryDto) {
     const {
       page = 1,
       limit = 10,

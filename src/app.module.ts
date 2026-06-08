@@ -9,6 +9,7 @@ import { CourseModule } from './course/course.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 // import { EnrollmentModule } from './enrollment/enrollment.module';
 import { ParentModule } from './parent/parent.module';
+import { RoomModule } from './room/room.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ParentModule } from './parent/parent.module';
     UploadModule,
     CourseModule,
     ParentModule,
+    RoomModule,
     // EnrollmentModule,
   ],
   controllers: [],
