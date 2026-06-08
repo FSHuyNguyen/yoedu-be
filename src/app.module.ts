@@ -10,6 +10,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 // import { EnrollmentModule } from './enrollment/enrollment.module';
 import { ParentModule } from './parent/parent.module';
 import { RoomModule } from './room/room.module';
+import { ScheduleModule } from './schedule/schedule.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { RoomModule } from './room/room.module';
     CourseModule,
     ParentModule,
     RoomModule,
+    ScheduleModule,
     // EnrollmentModule,
   ],
   controllers: [],
