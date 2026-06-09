@@ -10,6 +10,12 @@ const mappedWeekday: Record<string, string> = {
   8: 'Chủ Nhật',
 };
 
+export const mapSchedule = (schedule: ScheduleSlot) => {
+  const { weekday, startTime, endTime } = schedule;
+
+  return `${mappedWeekday[weekday]} (${startTime} - ${endTime})`;
+};
+
 export const mapScheduleResponse = (schedule: ScheduleSlot) => {
   return {
     id: schedule.id,

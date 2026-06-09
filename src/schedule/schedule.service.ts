@@ -7,7 +7,7 @@ import { StatusCode } from '../shared/utils/status';
 import { generateCode } from '../shared/utils/generate-code';
 import { CustomResponse } from '../shared/utils/response';
 import { ScheduleQueryDto } from './dto/query-schedule.dto';
-import { mapScheduleResponse } from './mappers/schedule.mapper';
+import { mapSchedule, mapScheduleResponse } from './mappers/schedule.mapper';
 
 @Injectable()
 export class ScheduleService {
@@ -37,12 +37,7 @@ export class ScheduleService {
 
     return schedules.map((schedule) => ({
       value: schedule.id,
-      label:
-        schedule.weekday +
-        ' - ' +
-        schedule.startTime +
-        ' - ' +
-        schedule.endTime,
+      label: mapSchedule(schedule),
     }));
   }
 

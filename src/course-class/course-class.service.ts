@@ -1,0 +1,203 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateCourseClassDto } from './dto/create-course-class.dto';
+import { UpdateCourseClassDto } from './dto/update-course-class.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
+import { generateCode } from '../shared/utils/generate-code';
+import { CustomResponse } from '../shared/utils/response';
+import { StatusCode } from '../shared/utils/status';
+import { CourseClassQueryDto } from './dto/query-course-class.dto';
+import {
+  COUSE_CLASS_INCLUDE,
+  mapCourseClassResponse,
+} from './mappers/course-class.mapper';
+
+@Injectable()
+export class CourseClassService {
+  constructor(private readonly prismaService: PrismaService) {}
+
+  /*************************************************************
+   * HELPERS
+   *************************************************************/
+  public async getCourseClassByIdOrThrow(courseClassId: string) {
+    const courseClass = await this.prismaService.courseClass.findUnique({
+      where: {
+        id: courseClassId,
+      },
+      include: COUSE_CLASS_INCLUDE,
+    });
+
+    if (!courseClass) {
+      throw new NotFoundException('Không tìm thấy lớp học');
+    }
+
+    return courseClass;
+  }
+
+  async getCourseClassOptions() {
+    const now = new Date();
+
+    const courseClasses = await this.prismaService.courseClass.findMany({
+      where: {
+        startDate: {
+          lte: now,
+        },
+
+        endDate: {
+          gte: now,
+        },
+      },
+    });
+
+    return courseClasses.map((courseClass) => ({
+      value: courseClass.id,
+      label: courseClass.name,
+    }));
+  }
+
+  async create(dto: CreateCourseClassDto) {
+    await this.prismaService.courseClass.create({
+      data: {
+        ...dto,
+        startDate: new Date(dto.startDate),
+        endDate: new Date(dto.endDate),
+        classCode: generateCode('CourseClass'),
+      },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.CREATED,
+      'Tạo lớp học thành công',
+      null,
+    );
+  }
+
+  async update(id: string, dto: UpdateCourseClassDto) {
+    await this.getCourseClassByIdOrThrow(id);
+
+    await this.prismaService.courseClass.update({
+      where: {
+        id,
+      },
+
+      data: {
+        ...dto,
+        startDate: dto.startDate ? new Date(dto.startDate) : undefined,
+        endDate: dto.endDate ? new Date(dto.endDate) : undefined,
+      },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Cập nhật lớp học thành công',
+      null,
+    );
+  }
+
+  async findAll(query: CourseClassQueryDto) {
+    const {
+      page = 1,
+      limit = 10,
+
+      courseId,
+      roomId,
+      scheduleSlotId,
+      mainTeacherId,
+      startDate,
+      endDate,
+      keySearch,
+    } = query;
+
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.CourseClassWhereInput = {};
+
+    if (courseId) {
+      where.courseId = courseId;
+    }
+
+    if (roomId) {
+      where.roomId = roomId;
+    }
+
+    if (scheduleSlotId) {
+      where.scheduleSlotId = scheduleSlotId;
+    }
+
+    if (mainTeacherId) {
+      where.mainTeacherId = mainTeacherId;
+    }
+
+    if (startDate) {
+      where.startDate = {
+        gte: new Date(startDate),
+      };
+    }
+
+    if (endDate) {
+      where.endDate = {
+        lte: new Date(endDate),
+      };
+    }
+
+    if (keySearch) {
+      where.OR = [
+        {
+          name: {
+            contains: keySearch,
+            mode: 'insensitive',
+          },
+        },
+      ];
+    }
+
+    const [courseClasses, total] = await Promise.all([
+      this.prismaService.courseClass.findMany({
+        where,
+
+        skip,
+
+        take: limit,
+
+        orderBy: {
+          createdAt: 'desc',
+        },
+
+        include: COUSE_CLASS_INCLUDE,
+      }),
+
+      this.prismaService.courseClass.count({
+        where,
+      }),
+    ]);
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Lấy danh sách lớp học thành công',
+      {
+        items: courseClasses.map(mapCourseClassResponse),
+
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      },
+    );
+  }
+
+  async findById(id: string) {
+    const courseClass = await this.getCourseClassByIdOrThrow(id);
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Lấy thông tin lớp học thành công',
+      mapCourseClassResponse(courseClass),
+    );
+  }
+}

@@ -37,15 +37,6 @@ export class BaseCourseDto {
   level?: CourseLevel;
 
   @ApiPropertyOptional({
-    example: 5000000,
-    description: 'Học phí khóa học',
-  })
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  tuitionFee?: number;
-
-  @ApiPropertyOptional({
     example: 24,
     description: 'Tổng số buổi học',
   })
@@ -53,13 +44,4 @@ export class BaseCourseDto {
   @Type(() => Number)
   @IsNumber()
   totalSessions?: number;
-
-  @ApiPropertyOptional({
-    example: 25,
-    description: 'Số lượng học viên tối đa',
-  })
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  maxStudents?: number;
 }

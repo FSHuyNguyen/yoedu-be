@@ -26,7 +26,7 @@ export const mapStudentResponse = (student: StudentResponse) => {
 
     parentId: student.parentId,
 
-    parentName: student.parent ? student.parent.user.fullName : null,
+    parentName: student.parent ? student.parent.user.fullName : '',
 
     studentCode: student.studentCode,
 

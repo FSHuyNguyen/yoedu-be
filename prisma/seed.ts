@@ -76,7 +76,6 @@ async function main() {
       courseCode: 'C001',
       name: 'Basic English',
       level: CourseLevel.BEGINNER,
-      tuitionFee: 1000000,
       status: CourseStatus.OPEN,
       totalSessions: 24,
     },

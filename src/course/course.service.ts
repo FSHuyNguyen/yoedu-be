@@ -145,7 +145,7 @@ export class CourseService {
     return CustomResponse(
       true,
       StatusCode.OK,
-      'Lấy thông tin giáo viên thành công',
+      'Lấy thông tin khóa học thành công',
       mapCourseResponse(course),
     );
   }

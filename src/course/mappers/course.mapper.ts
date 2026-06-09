@@ -21,11 +21,7 @@ export const mapCourseResponse = (course: Course) => {
 
     level: course.level,
 
-    tuitionFee: course.tuitionFee,
-
     totalSessions: course.totalSessions,
-
-    maxStudents: course.maxStudents,
 
     status: course.status,
 

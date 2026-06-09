@@ -1,0 +1,94 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
+import { CourseClassService } from './course-class.service';
+import { CreateCourseClassDto } from './dto/create-course-class.dto';
+import { UpdateCourseClassDto } from './dto/update-course-class.dto';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
+import { CourseClassQueryDto } from './dto/query-course-class.dto';
+
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('course-class')
+export class CourseClassController {
+  constructor(private readonly courseClassService: CourseClassService) {}
+
+  @Get('options')
+  getCourseClassOptions() {
+    return this.courseClassService.getCourseClassOptions();
+  }
+
+  @Post()
+  @Roles(Role.ADMIN, Role.STAFF)
+  @ApiOperation({
+    summary: 'Tạo lớp học',
+  })
+  async create(@Body() dto: CreateCourseClassDto) {
+    return this.courseClassService.create(dto);
+  }
+
+  @Get()
+  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
+  @ApiOperation({
+    summary: 'Lấy danh sách lớp học',
+  })
+  async findAll(@Query() query: CourseClassQueryDto) {
+    return this.courseClassService.findAll(query);
+  }
+
+  @Get(':id')
+  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
+  @ApiOperation({
+    summary: 'Lấy chi tiết lớp học',
+  })
+  async findById(@Param('id') id: string) {
+    return this.courseClassService.findById(id);
+  }
+
+  @Patch(':id')
+  @Roles(Role.ADMIN, Role.STAFF)
+  @ApiOperation({
+    summary: 'Cập nhật lớp học',
+  })
+  async update(@Param('id') id: string, @Body() dto: UpdateCourseClassDto) {
+    return this.courseClassService.update(id, dto);
+  }
+
+  // @Patch(':id/open')
+  // @Roles(Role.ADMIN, Role.STAFF)
+  // @ApiOperation({
+  //   summary: 'Mở lớp học',
+  // })
+  // async openCourse(@Param('id') id: string) {
+  //   return this.courseClassService.openCourse(id);
+  // }
+
+  // @Patch(':id/close')
+  // @Roles(Role.ADMIN, Role.STAFF)
+  // @ApiOperation({
+  //   summary: 'Đóng lớp học',
+  // })
+  // async closedCourse(@Param('id') id: string) {
+  //   return this.courseClassService.closedCourse(id);
+  // }
+
+  // @Delete(':id')
+  // @Roles(Role.ADMIN, Role.STAFF)
+  // @ApiOperation({
+  //   summary: 'Xóa lớp học',
+  // })
+  // async remove(@Param('id') id: string) {
+  //   return this.courseClassService.remove(id);
+  // }
+}
