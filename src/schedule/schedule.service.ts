@@ -16,9 +16,7 @@ export class ScheduleService {
   /*************************************************************
    * HELPERS
    *************************************************************/
-  public async getScheduleByIdOrThrow(
-    scheduleId: string,
-  ): Promise<ScheduleSlot> {
+  async getScheduleByIdOrThrow(scheduleId: string): Promise<ScheduleSlot> {
     const schedule = await this.prismaService.scheduleSlot.findUnique({
       where: {
         id: scheduleId,

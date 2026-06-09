@@ -20,7 +20,7 @@ export class ParentService {
   /*************************************************************
    * HELPERS
    *************************************************************/
-  public async getParentByIdOrThrow(parentId: string) {
+  async getParentByIdOrThrow(parentId: string) {
     const parent = await this.prismaService.parent.findUnique({
       where: {
         id: parentId,

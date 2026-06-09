@@ -22,7 +22,7 @@ export class TeacherService {
   /*************************************************************
    * HELPERS
    *************************************************************/
-  public async getTeacherByIdOrThrow(teacherId: string) {
+  async getTeacherByIdOrThrow(teacherId: string) {
     const teacher = await this.prismaService.teacher.findUnique({
       where: {
         id: teacherId,

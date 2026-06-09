@@ -27,7 +27,7 @@ export class StudentService {
   /*************************************************************
    * HELPERS
    *************************************************************/
-  public async getStudentByIdOrThrow(studentId: string) {
+  async getStudentByIdOrThrow(studentId: string) {
     const student = await this.prismaService.student.findUnique({
       where: {
         id: studentId,

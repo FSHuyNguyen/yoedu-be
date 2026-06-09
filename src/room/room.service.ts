@@ -16,7 +16,7 @@ export class RoomService {
   /*************************************************************
    * HELPERS
    *************************************************************/
-  public async getRoomByIdOrThrow(roomId: string): Promise<Room> {
+  async getRoomByIdOrThrow(roomId: string): Promise<Room> {
     const room = await this.prismaService.room.findUnique({
       where: {
         id: roomId,

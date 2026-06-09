@@ -21,7 +21,7 @@ export class CourseService {
   /*************************************************************
    * HELPERS
    *************************************************************/
-  public async getCourseByIdOrThrow(courseId: string): Promise<Course> {
+  async getCourseByIdOrThrow(courseId: string): Promise<Course> {
     const course = await this.prismaService.course.findUnique({
       where: {
         id: courseId,
