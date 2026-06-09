@@ -33,7 +33,11 @@ export class ScheduleService {
   }
 
   async getScheduleOptions() {
-    const schedules = await this.prismaService.scheduleSlot.findMany();
+    const schedules = await this.prismaService.scheduleSlot.findMany({
+      orderBy: {
+        weekday: 'asc',
+      },
+    });
 
     return schedules.map((schedule) => ({
       value: schedule.id,

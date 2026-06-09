@@ -34,18 +34,21 @@ export class CourseClassService {
     return courseClass;
   }
 
+  /* 
+    Chỉ lấy những lớp chưa kết thúc để hiển thị trong dropdown khi tạo mới hoặc cập nhật lớp học, tránh việc chọn nhầm lớp đã kết thúc
+  */
   async getCourseClassOptions() {
     const now = new Date();
 
     const courseClasses = await this.prismaService.courseClass.findMany({
       where: {
-        startDate: {
-          lte: now,
-        },
-
         endDate: {
           gte: now,
         },
+      },
+
+      orderBy: {
+        startDate: 'asc',
       },
     });
 

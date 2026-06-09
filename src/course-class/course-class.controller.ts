@@ -64,31 +64,4 @@ export class CourseClassController {
   async update(@Param('id') id: string, @Body() dto: UpdateCourseClassDto) {
     return this.courseClassService.update(id, dto);
   }
-
-  // @Patch(':id/open')
-  // @Roles(Role.ADMIN, Role.STAFF)
-  // @ApiOperation({
-  //   summary: 'Mở lớp học',
-  // })
-  // async openCourse(@Param('id') id: string) {
-  //   return this.courseClassService.openCourse(id);
-  // }
-
-  // @Patch(':id/close')
-  // @Roles(Role.ADMIN, Role.STAFF)
-  // @ApiOperation({
-  //   summary: 'Đóng lớp học',
-  // })
-  // async closedCourse(@Param('id') id: string) {
-  //   return this.courseClassService.closedCourse(id);
-  // }
-
-  // @Delete(':id')
-  // @Roles(Role.ADMIN, Role.STAFF)
-  // @ApiOperation({
-  //   summary: 'Xóa lớp học',
-  // })
-  // async remove(@Param('id') id: string) {
-  //   return this.courseClassService.remove(id);
-  // }
 }

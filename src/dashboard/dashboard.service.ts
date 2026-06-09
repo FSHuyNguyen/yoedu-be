@@ -2,178 +2,255 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StatusCode } from '../shared/utils/status';
 import { CustomResponse } from '../shared/utils/response';
-// import { CourseStatus } from '@prisma/client';
-// import { CustomResponse } from '../shared/utils/response';
-// import { StatusCode } from '../shared/utils/status';
+import { RECENT_LIMIT } from './constants/dashboard-recent';
+import { ActivityType } from './enum/activity-type.enum';
 
 @Injectable()
 export class DashboardService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  // async getDashboardData() {
-  //   const now = new Date();
+  async getDashboardData() {
+    const now = new Date();
 
-  //   const startOfMonth = (date: Date) => {
-  //     return new Date(date.getFullYear(), date.getMonth(), 1);
-  //   };
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  //   const [
-  //     totalStudents,
-  //     totalTeachers,
-  //     activeCourses,
-  //     totalRevenue,
-  //     totalRevenueThisMonth,
-  //     newStudentsThisMonth,
-  //     newTeachersThisMonth,
-  //     newCoursesThisMonth,
-  //     recentEnrollments,
-  //     todayCourses,
-  //   ] = await Promise.all([
-  //     this.prismaService.student.count(),
+    const currentWeekday = now.getDay() === 0 ? 8 : now.getDay() + 1;
 
-  //     this.prismaService.teacher.count(),
+    const [
+      totalStudents,
+      totalTeachers,
+      totalClasses,
+      activeClasses,
+      newStudentsThisMonth,
+      newTeachersThisMonth,
+      newClassesThisMonth,
 
-  //     this.prismaService.course.count({
-  //       where: {
-  //         status: CourseStatus.OPEN,
-  //       },
-  //     }),
+      recentStudents,
+      recentTeachers,
+      recentCourseClasses,
+      recentEnrollments,
 
-  //     this.prismaService.enrollment.aggregate({
-  //       _sum: {
-  //         paidAmount: true,
-  //       },
-  //     }),
+      todayClasses,
+    ] = await Promise.all([
+      /* Tổng học viên */
+      this.prismaService.student.count(),
 
-  //     /* So với tháng trước */
-  //     this.prismaService.enrollment.aggregate({
-  //       _sum: {
-  //         paidAmount: true,
-  //       },
-  //       where: {
-  //         enrolledAt: {
-  //           gte: startOfMonth(now),
-  //         },
-  //       },
-  //     }),
+      /* Tổng giáo viên */
+      this.prismaService.teacher.count(),
 
-  //     this.prismaService.student.count({
-  //       where: {
-  //         joinedAt: {
-  //           gte: startOfMonth(now),
-  //         },
-  //       },
-  //     }),
+      /* Tổng lớp học */
+      this.prismaService.courseClass.count(),
 
-  //     this.prismaService.teacher.count({
-  //       where: {
-  //         joinedAt: {
-  //           gte: startOfMonth(now),
-  //         },
-  //       },
-  //     }),
+      /* Lớp đang hoạt động */
+      this.prismaService.courseClass.count({
+        where: {
+          startDate: {
+            lte: now,
+          },
 
-  //     this.prismaService.course.count({
-  //       where: {
-  //         createdAt: {
-  //           gte: startOfMonth(now),
-  //         },
-  //         status: CourseStatus.OPEN,
-  //       },
-  //     }),
+          endDate: {
+            gte: now,
+          },
+        },
+      }),
 
-  //     this.prismaService.activityLog.findMany({
-  //       orderBy: {
-  //         createdAt: 'desc',
-  //       },
-  //     }),
+      /* Học viên mới tháng này */
+      this.prismaService.student.count({
+        where: {
+          createdAt: {
+            gte: startOfMonth,
+          },
+        },
+      }),
 
-  //     this.prismaService.course.findMany({
-  //       where: {
-  //         status: CourseStatus.OPEN,
+      /* Giáo viên mới tháng này */
+      this.prismaService.teacher.count({
+        where: {
+          createdAt: {
+            gte: startOfMonth,
+          },
+        },
+      }),
 
-  //         startDate: {
-  //           lte: now,
-  //         },
-  //       },
-  //       include: {
-  //         teacher: {
-  //           include: {
-  //             user: true,
-  //           },
-  //         },
-  //         _count: {
-  //           select: {
-  //             enrollments: true,
-  //           },
-  //         },
-  //       },
-  //       take: 10,
-  //     }),
-  //   ]);
+      /* Lớp mới tháng này */
+      this.prismaService.courseClass.count({
+        where: {
+          createdAt: {
+            gte: startOfMonth,
+          },
+        },
+      }),
 
-  //   return CustomResponse(
-  //     true,
-  //     StatusCode.OK,
-  //     'Lấy dữ liệu dashboard thành công',
-  //     {
-  //       statData: [
-  //         {
-  //           title: 'Tổng học viên',
-  //           value: `${totalStudents} người`,
-  //           extra: `+${newStudentsThisMonth}`,
-  //         },
+      /* Hoạt động gần đây của học viên */
+      this.prismaService.student.findMany({
+        take: RECENT_LIMIT,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          user: true,
+        },
+      }),
 
-  //         {
-  //           title: 'Lớp đang hoạt động',
-  //           value: `${activeCourses} lớp`,
-  //           extra: `+${newCoursesThisMonth}`,
-  //         },
+      /* Hoạt động gần đây của giáo viên */
+      this.prismaService.teacher.findMany({
+        take: RECENT_LIMIT,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        include: {
+          user: true,
+        },
+      }),
 
-  //         {
-  //           title: 'Giáo viên',
-  //           value: `${totalTeachers} người`,
-  //           extra: `+${newTeachersThisMonth}`,
-  //         },
+      /* Hoạt động gần đây của lớp học */
+      this.prismaService.courseClass.findMany({
+        take: RECENT_LIMIT,
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
 
-  //         {
-  //           title: 'Doanh thu',
-  //           value: `${totalRevenue._sum.paidAmount ?? 0} VND`,
-  //           extra: `+${totalRevenueThisMonth._sum.paidAmount ?? 0}`,
-  //         },
-  //       ],
+      /* Đăng ký gần đây */
+      this.prismaService.enrollment.findMany({
+        take: RECENT_LIMIT,
+        orderBy: {
+          enrolledAt: 'desc',
+        },
 
-  //       recentActivityData: recentEnrollments.map((item) => ({
-  //         type: item.type,
-  //         title: item.title,
-  //         message: item.description,
-  //         date: item.createdAt,
-  //       })),
+        include: {
+          student: {
+            include: {
+              user: true,
+            },
+          },
 
-  //       todayClasses: todayCourses.map((course) => ({
-  //         name: `Khóa học: ${course.name}`,
+          courseClass: true,
+        },
+      }),
 
-  //         teacher: course.teacher?.user.fullName ?? 'Chưa phân công',
+      /* Lớp học hôm nay */
+      this.prismaService.courseClass.findMany({
+        take: RECENT_LIMIT,
 
-  //         totalStudents: course._count.enrollments,
+        where: {
+          startDate: {
+            lte: now,
+          },
 
-  //         time: `${course.startTime} - ${course.endTime}`,
-  //       })),
-  //     },
-  //   );
-  // }
+          endDate: {
+            gte: now,
+          },
 
-  getDashboardData() {
+          scheduleSlot: {
+            weekday: currentWeekday,
+          },
+        },
+
+        include: {
+          scheduleSlot: true,
+
+          mainTeacher: {
+            include: {
+              user: true,
+            },
+          },
+
+          _count: {
+            select: {
+              enrollments: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    const recentActivityData = [
+      ...recentStudents.map((student) => ({
+        type: ActivityType.STUDENT,
+
+        title: 'Học viên mới',
+
+        message: `${student.user.fullName} đã được thêm vào hệ thống`,
+
+        date: student.createdAt,
+      })),
+
+      ...recentTeachers.map((teacher) => ({
+        type: ActivityType.TEACHER,
+
+        title: 'Giáo viên mới',
+
+        message: `${teacher.user.fullName} đã được thêm vào hệ thống`,
+
+        date: teacher.createdAt,
+      })),
+
+      ...recentCourseClasses.map((courseClass) => ({
+        type: ActivityType.COURSE_CLASS,
+
+        title: 'Lớp học mới',
+
+        message: `${courseClass.name} được tạo`,
+
+        date: courseClass.createdAt,
+      })),
+
+      ...recentEnrollments.map((enrollment) => ({
+        type: ActivityType.ENROLLMENT,
+
+        title: 'Đăng ký lớp học',
+
+        message: `${enrollment.student.user.fullName} đăng ký lớp ${enrollment.courseClass.name}`,
+
+        date: enrollment.enrolledAt,
+      })),
+    ]
+      .sort((a, b) => b.date.getTime() - a.date.getTime())
+      .slice(0, RECENT_LIMIT);
+
     return CustomResponse(
       true,
       StatusCode.OK,
       'Lấy dữ liệu dashboard thành công',
       {
-        statData: [],
+        statData: [
+          {
+            title: 'Tổng học viên',
+            value: `${totalStudents} người`,
+            extra: `+${newStudentsThisMonth} tháng này`,
+          },
 
-        recentActivityData: [],
+          {
+            title: 'Tổng giáo viên',
+            value: `${totalTeachers} người`,
+            extra: `+${newTeachersThisMonth} tháng này`,
+          },
 
-        todayClasses: [],
+          {
+            title: 'Tổng lớp học',
+            value: `${totalClasses} lớp`,
+            extra: `+${newClassesThisMonth} tháng này`,
+          },
+
+          {
+            title: 'Lớp đang diễn ra',
+            value: `${activeClasses} lớp`,
+            extra: '',
+          },
+        ],
+
+        recentActivityData,
+
+        todayClasses: todayClasses.map((courseClass) => ({
+          name: courseClass.name,
+
+          teacher: courseClass.mainTeacher.user.fullName,
+
+          totalStudents: courseClass._count.enrollments,
+
+          time: `${courseClass.scheduleSlot.startTime} - ${courseClass.scheduleSlot.endTime}`,
+        })),
       },
     );
   }

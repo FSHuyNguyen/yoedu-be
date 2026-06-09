@@ -1,10 +1,8 @@
 import { Prisma } from '@prisma/client';
 import { BASE_USER_INCLUDE } from '../../user/constants/user.constants';
 import { mapSchedule } from '../../schedule/mappers/schedule.mapper';
-import {
-  CourseClassStatus,
-  getCourseClassStatus,
-} from '../utils/course-class-status';
+import { getCourseClassStatus } from '../utils/course-class-status';
+import { CourseClassStatus } from '../enum/course-class-status.enum';
 
 export const COUSE_CLASS_INCLUDE = {
   course: {

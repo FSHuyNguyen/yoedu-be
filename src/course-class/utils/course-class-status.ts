@@ -1,8 +1,4 @@
-export enum CourseClassStatus {
-  OPEN = 'OPEN',
-  ONGOING = 'ONGOING',
-  CLOSED = 'CLOSED',
-}
+import { CourseClassStatus } from '../enum/course-class-status.enum';
 
 export const getCourseClassStatus = (
   startDate: Date,
