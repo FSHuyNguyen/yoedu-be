@@ -130,6 +130,7 @@ export class AuthService {
 
       const user = await this.userService.getUserByIdOrThrow(
         String(payload.sub),
+        true,
       );
 
       if (!user) {
