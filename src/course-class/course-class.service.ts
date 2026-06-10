@@ -11,6 +11,7 @@ import {
   COUSE_CLASS_INCLUDE,
   mapCourseClassResponse,
 } from './mappers/course-class.mapper';
+import { getCurrentWeekdayCustom } from '../utils/date';
 
 @Injectable()
 export class CourseClassService {
@@ -32,6 +33,58 @@ export class CourseClassService {
     }
 
     return courseClass;
+  }
+
+  private async generateSessions(courseClassId: string) {
+    const courseClass = await this.prismaService.courseClass.findUnique({
+      where: { id: courseClassId },
+      include: {
+        schedules: {
+          include: { scheduleSlot: true },
+        },
+      },
+    });
+
+    if (!courseClass) throw new NotFoundException();
+
+    const start = new Date(courseClass.startDate);
+    const end = new Date(courseClass.endDate);
+
+    const sessions: Prisma.CourseClassSessionCreateManyInput[] = [];
+
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const weekday = getCurrentWeekdayCustom(d);
+
+      const matchedSlots = courseClass.schedules.filter(
+        (s) => s.scheduleSlot.weekday === weekday,
+      );
+
+      for (const slot of matchedSlots) {
+        const [startHour, startMin] = slot.scheduleSlot.startTime
+          .split(':')
+          .map(Number);
+        const [endHour, endMin] = slot.scheduleSlot.endTime
+          .split(':')
+          .map(Number);
+
+        const sessionStart = new Date(d);
+        sessionStart.setHours(startHour, startMin, 0, 0);
+
+        const sessionEnd = new Date(d);
+        sessionEnd.setHours(endHour, endMin, 0, 0);
+
+        sessions.push({
+          courseClassId,
+          scheduleSlotId: slot.scheduleSlotId,
+          startTime: sessionStart,
+          endTime: sessionEnd,
+        });
+      }
+    }
+
+    await this.prismaService.courseClassSession.createMany({
+      data: sessions,
+    });
   }
 
   /* 
@@ -59,7 +112,7 @@ export class CourseClassService {
   }
 
   async create(dto: CreateCourseClassDto) {
-    await this.prismaService.courseClass.create({
+    const courseClass = await this.prismaService.courseClass.create({
       data: {
         name: dto.name,
         courseId: dto.courseId,
@@ -83,6 +136,8 @@ export class CourseClassService {
         },
       },
     });
+
+    await this.generateSessions(courseClass.id);
 
     return CustomResponse(
       true,

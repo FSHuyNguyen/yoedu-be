@@ -12,6 +12,7 @@ import { ParentModule } from './parent/parent.module';
 import { RoomModule } from './room/room.module';
 import { ScheduleModule } from './schedule/schedule.module';
 import { CourseClassModule } from './course-class/course-class.module';
+import { CourseClassSessionModule } from './course-class-session/course-class-session.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { CourseClassModule } from './course-class/course-class.module';
     ScheduleModule,
     CourseClassModule,
     EnrollmentModule,
+    CourseClassSessionModule,
   ],
   controllers: [],
   providers: [],

@@ -68,10 +68,17 @@ enum EnrollmentStatus {
 }
 
 enum AttendanceStatus {
-  PRESENT
-  ABSENT
-  LATE
-  EXCUSED
+  PRESENT // Có mặt đầy đủ
+  ABSENT // Vắng không phép
+  LATE // Đi trễ
+  EXCUSED // Vắng có phép (có lý do hợp lệ)
+}
+
+enum SessionStatus {
+  SCHEDULED  // Buổi học đã được tạo từ schedule, Chưa diễn ra
+  DONE  // Buổi học đã diễn ra xong
+  CANCELLED // Buổi học bị hủy hoàn toàn
+  RESCHEDULED // Buổi học bị dời sang thời gian khác
 }
 
 enum InvoiceStatus {
@@ -311,6 +318,7 @@ model ScheduleSlot {
   updatedAt DateTime @updatedAt
 
   courseClassSchedules CourseClassSchedule[]
+  courseClassSessions CourseClassSession[]
 
   @@map("schedule_slots")
 }
@@ -345,9 +353,9 @@ model CourseClass {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  sessions        CourseClassSession[]
   schedules       CourseClassSchedule[]
   enrollments     Enrollment[]
-  attendances     Attendance[]
   learningResults LearningResult[]
   invoices        TuitionInvoice[]
   leaveRequests   LeaveRequest[]
@@ -391,28 +399,51 @@ model Enrollment {
   @@map("enrollments")
 }
 
-model Attendance {
+model CourseClassSession {
   id String @id @default(uuid())
 
   courseClassId String
-  courseClass   CourseClass @relation(fields: [courseClassId], references: [id], onDelete: Cascade)
+  courseClass CourseClass @relation(fields: [courseClassId], references: [id], onDelete: Cascade)
+
+  scheduleSlotId String
+  scheduleSlot ScheduleSlot @relation(fields: [scheduleSlotId], references: [id])
+
+  startTime DateTime
+  endTime DateTime
+
+  status SessionStatus @default(SCHEDULED)
+
+  note String?
+
+  attendances Attendance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([courseClassId, scheduleSlotId, startTime])
+  @@map("course_class_sessions")
+}
+
+model Attendance {
+  id String @id @default(uuid())
+
+  sessionId String
+  session CourseClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   studentId String
-  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  attendanceDate DateTime
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   status AttendanceStatus
 
   note String?
 
   recordedByUserId String?
-  recordedByUser   User?   @relation(fields: [recordedByUserId], references: [id], onDelete: SetNull)
+  recordedByUser User? @relation(fields: [recordedByUserId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([courseClassId, studentId, attendanceDate])
+  @@unique([sessionId, studentId])
   @@map("attendances")
 }
 

@@ -4,6 +4,7 @@ import { StatusCode } from '../shared/utils/status';
 import { CustomResponse } from '../shared/utils/response';
 import { RECENT_LIMIT } from './constants/dashboard-recent';
 import { ActivityType } from './enum/activity-type.enum';
+import { getCurrentWeekdayCustom } from '../utils/date';
 
 @Injectable()
 export class DashboardService {
@@ -29,7 +30,7 @@ export class DashboardService {
 
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const currentWeekday = now.getDay() === 0 ? 8 : now.getDay() + 1;
+    const currentWeekday = getCurrentWeekdayCustom(now);
 
     const [
       totalStudents,
