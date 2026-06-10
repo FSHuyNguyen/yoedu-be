@@ -52,7 +52,7 @@ export class CourseService {
     await this.prismaService.course.create({
       data: {
         ...dto,
-        courseCode: generateCode('Course'),
+        courseCode: generateCode('C'),
       },
     });
 

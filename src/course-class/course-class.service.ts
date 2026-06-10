@@ -64,7 +64,7 @@ export class CourseClassService {
         ...dto,
         startDate: new Date(dto.startDate),
         endDate: new Date(dto.endDate),
-        classCode: generateCode('CourseClass'),
+        classCode: generateCode('CC'),
       },
     });
 

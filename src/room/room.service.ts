@@ -43,7 +43,7 @@ export class RoomService {
     await this.prismaService.room.create({
       data: {
         ...dto,
-        roomCode: generateCode('Room'),
+        roomCode: generateCode('R'),
       },
     });
 

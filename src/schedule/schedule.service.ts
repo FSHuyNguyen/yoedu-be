@@ -47,7 +47,7 @@ export class ScheduleService {
     await this.prismaService.scheduleSlot.create({
       data: {
         ...dto,
-        slotCode: generateCode('Schedule'),
+        slotCode: generateCode('SCH'),
       },
     });
 

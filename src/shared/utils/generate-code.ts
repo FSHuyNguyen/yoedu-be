@@ -4,5 +4,5 @@ export const generateCode = (prefix: string) => {
 
   const timestamp = now.getTime();
 
-  return `${prefix}-${timestamp}`;
+  return `${prefix}${timestamp}`;
 };
