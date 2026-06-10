@@ -23,6 +23,14 @@ export class FilterEnrollmentDto {
 
   @ApiPropertyOptional({
     example: '',
+    description: 'Lọc theo lớp học',
+  })
+  @IsOptional()
+  @IsString()
+  courseClassId?: string;
+
+  @ApiPropertyOptional({
+    example: '',
     description: 'Lọc theo khóa học',
   })
   @IsOptional()

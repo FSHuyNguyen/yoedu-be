@@ -60,10 +60,11 @@ enum CourseStatus {
 }
 
 enum EnrollmentStatus {
-  ACTIVE
-  PAUSED
-  DROPPED
-  COMPLETED
+  ACTIVE      // Đang học
+  PAUSED      // Bảo lưu
+  DROPPED     // Nghỉ giữa chừng
+  COMPLETED   // Hoàn thành
+  CANCELLED   // Hủy trước khi học
 }
 
 enum AttendanceStatus {
