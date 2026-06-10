@@ -20,6 +20,7 @@ import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { TeacherQueryDto } from './dto/query-teacher.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import type { AuthUser } from '../auth/types/auth-jwt-user.type';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -34,8 +35,8 @@ export class TeacherController {
 
   @Patch('me')
   @Roles(Role.TEACHER)
-  updateMe(@CurrentUser() user: any, @Body() dto: UpdateTeacherDto) {
-    return this.teacherService.update(String(user.id), dto);
+  updateMe(@CurrentUser() user: AuthUser, @Body() dto: UpdateTeacherDto) {
+    return this.teacherService.update(user.id, dto);
   }
 
   // POST /teachers

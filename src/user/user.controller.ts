@@ -24,6 +24,7 @@ import { UserQueryDto } from './dto/query-user.dto';
 import { Role } from '@prisma/client';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create-user.dto';
+import type { AuthUser } from '../auth/types/auth-jwt-user.type';
 @ApiBearerAuth()
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -31,18 +32,21 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('me')
-  getMe(@CurrentUser() user: any) {
-    return this.userService.getMe(String(user.id));
+  getMe(@CurrentUser() user: AuthUser) {
+    return this.userService.getMe(user.id);
   }
 
   @Patch('me')
-  updateMe(@CurrentUser() user: any, @Body() dto: UpdateUserDto) {
-    return this.userService.updateMe(String(user.id), dto);
+  updateMe(@CurrentUser() user: AuthUser, @Body() dto: UpdateUserDto) {
+    return this.userService.updateMe(user.id, dto);
   }
 
   @Patch('change-password')
-  changePassword(@CurrentUser() user: any, @Body() dto: ChangePasswordDto) {
-    return this.userService.changePassword(String(user.id), dto);
+  changePassword(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    return this.userService.changePassword(user.id, dto);
   }
 
   @Get()

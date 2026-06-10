@@ -14,6 +14,7 @@ import { ParentQueryDto } from './dto/query-parent.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Role } from '@prisma/client';
+import type { AuthUser } from '../auth/types/auth-jwt-user.type';
 
 @Controller('parents')
 export class ParentController {
@@ -26,8 +27,8 @@ export class ParentController {
 
   @Patch('me')
   @Roles(Role.PARENT)
-  updateMe(@CurrentUser() user: any, @Body() dto: UpdateParentDto) {
-    return this.parentService.update(String(user.id), dto);
+  updateMe(@CurrentUser() user: AuthUser, @Body() dto: UpdateParentDto) {
+    return this.parentService.update(user.id, dto);
   }
 
   @Roles(Role.ADMIN, Role.STAFF)

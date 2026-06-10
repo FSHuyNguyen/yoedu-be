@@ -23,6 +23,7 @@ import { UpdateStudentDto } from './dto/update-student.dto';
 import { StudentQueryDto } from './dto/query-student.dto';
 import { Role } from '@prisma/client';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import type { AuthUser } from '../auth/types/auth-jwt-user.type';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -37,8 +38,8 @@ export class StudentController {
 
   @Patch('me')
   @Roles(Role.STUDENT)
-  updateMe(@CurrentUser() user: any, @Body() dto: UpdateStudentDto) {
-    return this.studentService.update(String(user.id), dto);
+  updateMe(@CurrentUser() user: AuthUser, @Body() dto: UpdateStudentDto) {
+    return this.studentService.update(user.id, dto);
   }
 
   // POST /students
