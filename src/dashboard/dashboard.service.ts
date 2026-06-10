@@ -9,6 +9,21 @@ import { ActivityType } from './enum/activity-type.enum';
 export class DashboardService {
   constructor(private readonly prismaService: PrismaService) {}
 
+  private getTodaySchedule(
+    schedules: {
+      scheduleSlot: {
+        weekday: number;
+        startTime: string;
+        endTime: string;
+      };
+    }[],
+    currentWeekday: number,
+  ) {
+    return schedules.find(
+      (item) => item.scheduleSlot.weekday === currentWeekday,
+    );
+  }
+
   async getDashboardData() {
     const now = new Date();
 
@@ -142,13 +157,21 @@ export class DashboardService {
             gte: now,
           },
 
-          scheduleSlot: {
-            weekday: currentWeekday,
+          schedules: {
+            some: {
+              scheduleSlot: {
+                weekday: currentWeekday,
+              },
+            },
           },
         },
 
         include: {
-          scheduleSlot: true,
+          schedules: {
+            include: {
+              scheduleSlot: true,
+            },
+          },
 
           mainTeacher: {
             include: {
@@ -242,15 +265,24 @@ export class DashboardService {
 
         recentActivityData,
 
-        todayClasses: todayClasses.map((courseClass) => ({
-          name: courseClass.name,
+        todayClasses: todayClasses.map((courseClass) => {
+          const todaySchedule = this.getTodaySchedule(
+            courseClass.schedules,
+            currentWeekday,
+          );
 
-          teacher: courseClass.mainTeacher.user.fullName,
+          return {
+            name: courseClass.name,
 
-          totalStudents: courseClass._count.enrollments,
+            teacher: courseClass.mainTeacher.user.fullName,
 
-          time: `${courseClass.scheduleSlot.startTime} - ${courseClass.scheduleSlot.endTime}`,
-        })),
+            totalStudents: courseClass._count.enrollments,
+
+            time: todaySchedule
+              ? `${todaySchedule.scheduleSlot.startTime} - ${todaySchedule.scheduleSlot.endTime}`
+              : '',
+          };
+        }),
       },
     );
   }

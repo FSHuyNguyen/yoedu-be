@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class BaseCourseClassDto {
@@ -25,11 +31,14 @@ export class BaseCourseClassDto {
   roomId!: string;
 
   @ApiProperty({
-    example: '1',
-    description: 'ID của ca học',
+    example: ['1', '2', '3'],
+    description: 'Danh sách ID ca học',
+    type: [String],
   })
-  @IsString()
-  scheduleSlotId!: string;
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  scheduleSlotIds!: string[];
 
   @ApiProperty({
     example: '1',
@@ -69,7 +78,7 @@ export class BaseCourseClassDto {
   @IsOptional()
   maxStudents?: number;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     example: 5000000,
     description: 'Học phí khóa học',
   })

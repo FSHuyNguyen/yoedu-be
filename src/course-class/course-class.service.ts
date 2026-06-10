@@ -61,10 +61,26 @@ export class CourseClassService {
   async create(dto: CreateCourseClassDto) {
     await this.prismaService.courseClass.create({
       data: {
-        ...dto,
+        name: dto.name,
+        courseId: dto.courseId,
+        roomId: dto.roomId,
+
+        mainTeacherId: dto.mainTeacherId,
+        assistantTeacherId: dto.assistantTeacherId,
+
         startDate: new Date(dto.startDate),
         endDate: new Date(dto.endDate),
+
+        maxStudents: dto.maxStudents,
+        tuitionFee: dto.tuitionFee,
+
         classCode: generateCode('CC'),
+
+        schedules: {
+          create: dto.scheduleSlotIds.map((scheduleSlotId) => ({
+            scheduleSlotId,
+          })),
+        },
       },
     });
 
@@ -79,16 +95,40 @@ export class CourseClassService {
   async update(id: string, dto: UpdateCourseClassDto) {
     await this.getCourseClassByIdOrThrow(id);
 
-    await this.prismaService.courseClass.update({
-      where: {
-        id,
-      },
+    await this.prismaService.$transaction(async (tx) => {
+      await tx.courseClass.update({
+        where: { id },
+        data: {
+          name: dto.name,
+          courseId: dto.courseId,
+          roomId: dto.roomId,
 
-      data: {
-        ...dto,
-        startDate: dto.startDate ? new Date(dto.startDate) : undefined,
-        endDate: dto.endDate ? new Date(dto.endDate) : undefined,
-      },
+          mainTeacherId: dto.mainTeacherId,
+          assistantTeacherId: dto.assistantTeacherId,
+
+          startDate: dto.startDate ? new Date(dto.startDate) : undefined,
+
+          endDate: dto.endDate ? new Date(dto.endDate) : undefined,
+
+          maxStudents: dto.maxStudents,
+          tuitionFee: dto.tuitionFee,
+        },
+      });
+
+      if (dto.scheduleSlotIds) {
+        await tx.courseClassSchedule.deleteMany({
+          where: {
+            courseClassId: id,
+          },
+        });
+
+        await tx.courseClassSchedule.createMany({
+          data: dto.scheduleSlotIds.map((scheduleSlotId) => ({
+            courseClassId: id,
+            scheduleSlotId,
+          })),
+        });
+      }
     });
 
     return CustomResponse(
@@ -126,7 +166,11 @@ export class CourseClassService {
     }
 
     if (scheduleSlotId) {
-      where.scheduleSlotId = scheduleSlotId;
+      where.schedules = {
+        some: {
+          scheduleSlotId,
+        },
+      };
     }
 
     if (mainTeacherId) {

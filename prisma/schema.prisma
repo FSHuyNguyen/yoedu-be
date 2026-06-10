@@ -310,7 +310,7 @@ model ScheduleSlot {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  courseClasses CourseClass[]
+  courseClassSchedules CourseClassSchedule[]
 
   @@map("schedule_slots")
 }
@@ -327,9 +327,6 @@ model CourseClass {
 
   roomId String
   room   Room   @relation(fields: [roomId], references: [id])
-
-  scheduleSlotId String
-  scheduleSlot   ScheduleSlot @relation(fields: [scheduleSlotId], references: [id])
 
   mainTeacherId String
   mainTeacher   Teacher @relation("MainTeacher", fields: [mainTeacherId], references: [id])
@@ -348,6 +345,7 @@ model CourseClass {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  schedules       CourseClassSchedule[]
   enrollments     Enrollment[]
   attendances     Attendance[]
   learningResults LearningResult[]
@@ -355,6 +353,20 @@ model CourseClass {
   leaveRequests   LeaveRequest[]
 
   @@map("course_classes")
+}
+
+model CourseClassSchedule {
+  id String @id @default(uuid())
+
+  courseClassId String
+  courseClass CourseClass @relation(fields: [courseClassId], references: [id], onDelete: Cascade)
+
+  scheduleSlotId String
+  scheduleSlot ScheduleSlot @relation(fields: [scheduleSlotId], references: [id], onDelete: Cascade)
+
+  @@unique([courseClassId, scheduleSlotId])
+
+  @@map("course_class_schedules")
 }
 
 model Enrollment {

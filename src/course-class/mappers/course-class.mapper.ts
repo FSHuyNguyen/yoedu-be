@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, ScheduleSlot } from '@prisma/client';
 import { BASE_USER_INCLUDE } from '../../user/constants/user.constants';
 import { mapSchedule } from '../../schedule/mappers/schedule.mapper';
 import { getCourseClassStatus } from '../utils/course-class-status';
@@ -17,7 +17,11 @@ export const COUSE_CLASS_INCLUDE = {
       name: true,
     },
   },
-  scheduleSlot: {},
+  schedules: {
+    include: {
+      scheduleSlot: true,
+    },
+  },
   mainTeacher: {
     include: BASE_USER_INCLUDE,
   },
@@ -41,6 +45,7 @@ export const mapCourseClassResponse = (courseClass: CourseClassResponse) => {
     courseClass.startDate,
     courseClass.endDate,
   );
+
   return {
     id: courseClass.id,
 
@@ -55,8 +60,12 @@ export const mapCourseClassResponse = (courseClass: CourseClassResponse) => {
     roomId: courseClass.roomId,
     roomName: courseClass.room.name,
 
-    scheduleSlotId: courseClass.scheduleSlotId,
-    scheduleInformation: mapSchedule(courseClass.scheduleSlot),
+    scheduleSlotIds: courseClass.schedules.map(
+      (item) => item.scheduleSlotId as string,
+    ),
+    scheduleInformation: courseClass.schedules.map((item) =>
+      mapSchedule(item.scheduleSlot as ScheduleSlot),
+    ),
 
     mainTeacherId: courseClass.mainTeacherId,
     mainTeacherName: courseClass.mainTeacher.user.fullName,
