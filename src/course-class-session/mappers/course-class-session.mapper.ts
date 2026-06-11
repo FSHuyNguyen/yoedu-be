@@ -12,6 +12,7 @@ export const COURSE_CLASS_SESSION_INCLUDE = {
       assistantTeacher: {
         include: BASE_USER_INCLUDE,
       },
+      room: true,
     },
   },
   scheduleSlot: true,
@@ -63,5 +64,37 @@ export const mapCourseClassSessionResponse = (
 
     createdAt: courseClassSession.createdAt,
     updatedAt: courseClassSession.updatedAt,
+  };
+};
+
+export const mapCourseClassSessionCalendarResponse = (
+  session: CourseClassSessionResponse,
+) => {
+  return {
+    id: session.id,
+
+    title: session.courseClass.name,
+
+    start: session.startTime,
+
+    end: session.endTime,
+
+    status: session.status,
+    statusText: mappedStatusText[session.status],
+
+    courseClassId: session.courseClassId,
+
+    courseClassName: session.courseClass.name,
+
+    mainTeacherName: session.courseClass.mainTeacher.user.fullName,
+
+    assistantTeacherName:
+      session.courseClass.assistantTeacher?.user.fullName ?? '',
+
+    courseName: session.courseClass.course.name,
+
+    roomName: session.courseClass.room.name,
+
+    note: session.note ?? '',
   };
 };

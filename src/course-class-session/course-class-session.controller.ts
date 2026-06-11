@@ -4,6 +4,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { ApiOperation } from '@nestjs/swagger';
 import { CourseClassSessionQueryDto } from './dto/query-create-course-class-session.dto';
+import { CourseClassSessionCalendarQueryDto } from './dto/query-calendar-course-class-session.dto';
 
 @Controller('course-class-sessions')
 export class CourseClassSessionController {
@@ -18,6 +19,15 @@ export class CourseClassSessionController {
   })
   async findAll(@Query() query: CourseClassSessionQueryDto) {
     return this.courseClassSessionService.findAll(query);
+  }
+
+  @Get('calendar')
+  @Roles(Role.ADMIN, Role.STAFF)
+  @ApiOperation({
+    summary: 'Lấy dữ liệu lịch học dạng calendar',
+  })
+  async calendar(@Query() query: CourseClassSessionCalendarQueryDto) {
+    return this.courseClassSessionService.calendar(query);
   }
 
   @Get(':id')

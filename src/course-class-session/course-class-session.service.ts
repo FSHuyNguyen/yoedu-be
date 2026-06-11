@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import {
   COURSE_CLASS_SESSION_INCLUDE,
   CourseClassSessionResponse,
+  mapCourseClassSessionCalendarResponse,
   mapCourseClassSessionResponse,
 } from './mappers/course-class-session.mapper';
 import { CustomResponse } from '../shared/utils/response';
@@ -10,6 +11,7 @@ import { StatusCode } from '../shared/utils/status';
 import { CourseClassSessionQueryDto } from './dto/query-create-course-class-session.dto';
 import { Prisma, SessionStatus } from '@prisma/client';
 import { startOfDay, endOfDay } from 'date-fns';
+import { CourseClassSessionCalendarQueryDto } from './dto/query-calendar-course-class-session.dto';
 
 @Injectable()
 export class CourseClassSessionService {
@@ -125,6 +127,41 @@ export class CourseClassSessionService {
           totalPages: Math.ceil(total / limit),
         },
       },
+    );
+  }
+
+  async calendar(query: CourseClassSessionCalendarQueryDto) {
+    const { startDate, endDate } = query;
+
+    const where: Prisma.CourseClassSessionWhereInput = {};
+
+    if (startDate || endDate) {
+      where.startTime = {
+        ...(startDate && {
+          gte: startOfDay(new Date(startDate)),
+        }),
+
+        ...(endDate && {
+          lte: endOfDay(new Date(endDate)),
+        }),
+      };
+    }
+
+    const sessions = await this.prismaService.courseClassSession.findMany({
+      where,
+
+      orderBy: {
+        startTime: 'asc',
+      },
+
+      include: COURSE_CLASS_SESSION_INCLUDE,
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Lấy dữ liệu calendar thành công',
+      sessions.map(mapCourseClassSessionCalendarResponse),
     );
   }
 
