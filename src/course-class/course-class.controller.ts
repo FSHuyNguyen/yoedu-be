@@ -7,6 +7,7 @@ import {
   Param,
   UseGuards,
   Query,
+  Delete,
 } from '@nestjs/common';
 import { CourseClassService } from './course-class.service';
 import { CreateCourseClassDto } from './dto/create-course-class.dto';
@@ -63,5 +64,14 @@ export class CourseClassController {
   })
   async update(@Param('id') id: string, @Body() dto: UpdateCourseClassDto) {
     return this.courseClassService.update(id, dto);
+  }
+
+  @Delete(':id')
+  @Roles(Role.ADMIN)
+  @ApiOperation({
+    summary: 'Xóa lớp học',
+  })
+  async remove(@Param('id') id: string) {
+    return this.courseClassService.remove(id);
   }
 }

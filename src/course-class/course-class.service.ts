@@ -305,4 +305,14 @@ export class CourseClassService {
       mapCourseClassResponse(courseClass),
     );
   }
+
+  async remove(id: string) {
+    await this.getCourseClassByIdOrThrow(id);
+
+    await this.prismaService.courseClass.delete({
+      where: { id },
+    });
+
+    return CustomResponse(true, StatusCode.OK, 'Xóa lớp học thành công', null);
+  }
 }
