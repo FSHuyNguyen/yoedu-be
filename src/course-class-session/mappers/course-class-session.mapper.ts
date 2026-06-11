@@ -1,5 +1,6 @@
 import { Prisma, SessionStatus } from '@prisma/client';
 import { BASE_USER_INCLUDE } from '../../user/constants/user.constants';
+import { mappedWeekday } from '../../schedule/mappers/schedule.mapper';
 
 export const COURSE_CLASS_SESSION_INCLUDE = {
   courseClass: {
@@ -36,6 +37,12 @@ export const mapCourseClassSessionResponse = (
     courseId: courseClassSession.courseClass.course.id,
     courseName: courseClassSession.courseClass.course.name,
 
+    courseClassId: courseClassSession.courseClass.id,
+    courseClassName: courseClassSession.courseClass.name,
+
+    scheduleSlotId: courseClassSession.scheduleSlotId,
+    scheduleSlotName: mappedWeekday[courseClassSession.scheduleSlot.weekday],
+
     mainTeacherId: courseClassSession.courseClass.mainTeacherId,
     mainTeacherName: courseClassSession.courseClass.mainTeacher.user.fullName,
 
@@ -47,6 +54,8 @@ export const mapCourseClassSessionResponse = (
     startTime: courseClassSession.startTime,
 
     endTime: courseClassSession.endTime,
+
+    note: courseClassSession.note,
 
     status: courseClassSession.status,
 

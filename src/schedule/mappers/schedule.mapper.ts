@@ -1,6 +1,6 @@
 import { ScheduleSlot } from '@prisma/client';
 
-const mappedWeekday: Record<string, string> = {
+export const mappedWeekday: Record<string, string> = {
   2: 'Thứ Hai',
   3: 'Thứ Ba',
   4: 'Thứ Tư',

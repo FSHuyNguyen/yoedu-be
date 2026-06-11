@@ -1,19 +1,18 @@
-import { Controller, Get, Body, Patch, Param, Query } from '@nestjs/common';
+import { Controller, Get, Body, Param, Query, Patch } from '@nestjs/common';
 import { CourseClassSessionService } from './course-class-session.service';
-import { UpdateCourseClassSessionDto } from './dto/update-course-class-session.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { ApiOperation } from '@nestjs/swagger';
 import { CourseClassSessionQueryDto } from './dto/query-create-course-class-session.dto';
 
-@Controller('course-class-session')
+@Controller('course-class-sessions')
 export class CourseClassSessionController {
   constructor(
     private readonly courseClassSessionService: CourseClassSessionService,
   ) {}
 
   @Get()
-  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
+  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Lấy danh sách lớp học',
   })
@@ -22,7 +21,7 @@ export class CourseClassSessionController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
+  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Lấy chi tiết lớp học',
   })
@@ -30,15 +29,30 @@ export class CourseClassSessionController {
     return this.courseClassSessionService.findById(id);
   }
 
-  @Patch(':id')
+  @Patch(':id/done')
   @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
-    summary: 'Cập nhật lớp học',
+    summary: 'Đánh dấu ca học hoàn thành',
   })
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateCourseClassSessionDto,
-  ) {
-    return this.courseClassSessionService.update(id, dto);
+  async markAsDone(@Param('id') id: string) {
+    return this.courseClassSessionService.markAsDone(id);
   }
+
+  @Patch(':id/cancel')
+  @Roles(Role.ADMIN, Role.STAFF)
+  @ApiOperation({
+    summary: 'Hủy ca học',
+  })
+  async cancel(@Param('id') id: string) {
+    return this.courseClassSessionService.cancel(id);
+  }
+
+  // @Patch(':id/rescheduled')
+  // @Roles(Role.ADMIN, Role.STAFF)
+  // @ApiOperation({
+  //   summary: 'Đặt lại ca học',
+  // })
+  // async reschedule(@Param('id') id: string) {
+  //   return this.courseClassSessionService.reschedule(id);
+  // }
 }

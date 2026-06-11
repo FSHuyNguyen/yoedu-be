@@ -5,11 +5,27 @@ import { IsOptional, IsString } from 'class-validator';
 export class FilterCourseClassSessionDto {
   @ApiPropertyOptional({
     example: null,
+    description: 'ID khóa học',
+  })
+  @IsOptional()
+  @IsString()
+  courseId?: string;
+
+  @ApiPropertyOptional({
+    example: null,
     description: 'ID lớp học',
   })
   @IsOptional()
   @IsString()
   courseClassId?: string;
+
+  @ApiPropertyOptional({
+    example: null,
+    description: 'ID giáo viên chính',
+  })
+  @IsOptional()
+  @IsString()
+  mainTeacherId?: string;
 
   @ApiPropertyOptional({
     example: null,
@@ -25,7 +41,7 @@ export class FilterCourseClassSessionDto {
   })
   @IsOptional()
   @IsString()
-  startTime?: string;
+  startDate?: string;
 
   @ApiPropertyOptional({
     example: '2024-09-01T10:00:00Z',
@@ -33,5 +49,5 @@ export class FilterCourseClassSessionDto {
   })
   @IsOptional()
   @IsString()
-  endTime?: string;
+  endDate?: string;
 }
