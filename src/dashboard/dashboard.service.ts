@@ -4,33 +4,20 @@ import { StatusCode } from '../shared/utils/status';
 import { CustomResponse } from '../shared/utils/response';
 import { RECENT_LIMIT } from './constants/dashboard-recent';
 import { ActivityType } from './enum/activity-type.enum';
-import { getCurrentWeekdayCustom } from '../utils/date';
+import { endOfDay, formatDate, startOfDay, startOfMonth } from 'date-fns';
+import { SessionStatus } from '@prisma/client';
 
 @Injectable()
 export class DashboardService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  private getTodaySchedule(
-    schedules: {
-      scheduleSlot: {
-        weekday: number;
-        startTime: string;
-        endTime: string;
-      };
-    }[],
-    currentWeekday: number,
-  ) {
-    return schedules.find(
-      (item) => item.scheduleSlot.weekday === currentWeekday,
-    );
-  }
-
   async getDashboardData() {
     const now = new Date();
 
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const todayStart = startOfDay(now);
+    const todayEnd = endOfDay(now);
 
-    const currentWeekday = getCurrentWeekdayCustom(now);
+    const monthStart = startOfMonth(now);
 
     const [
       totalStudents,
@@ -46,7 +33,7 @@ export class DashboardService {
       recentCourseClasses,
       recentEnrollments,
 
-      todayClasses,
+      todaySessions,
     ] = await Promise.all([
       /* Tổng học viên */
       this.prismaService.student.count(),
@@ -74,7 +61,7 @@ export class DashboardService {
       this.prismaService.student.count({
         where: {
           createdAt: {
-            gte: startOfMonth,
+            gte: monthStart,
           },
         },
       }),
@@ -83,7 +70,7 @@ export class DashboardService {
       this.prismaService.teacher.count({
         where: {
           createdAt: {
-            gte: startOfMonth,
+            gte: monthStart,
           },
         },
       }),
@@ -92,7 +79,7 @@ export class DashboardService {
       this.prismaService.courseClass.count({
         where: {
           createdAt: {
-            gte: startOfMonth,
+            gte: monthStart,
           },
         },
       }),
@@ -146,45 +133,38 @@ export class DashboardService {
       }),
 
       /* Lớp học hôm nay */
-      this.prismaService.courseClass.findMany({
+      this.prismaService.courseClassSession.findMany({
         take: RECENT_LIMIT,
 
         where: {
-          startDate: {
-            lte: now,
+          startTime: {
+            gte: todayStart,
+            lte: todayEnd,
           },
 
-          endDate: {
-            gte: now,
-          },
+          status: SessionStatus.SCHEDULED,
+        },
 
-          schedules: {
-            some: {
-              scheduleSlot: {
-                weekday: currentWeekday,
+        include: {
+          courseClass: {
+            include: {
+              mainTeacher: {
+                include: {
+                  user: true,
+                },
+              },
+
+              _count: {
+                select: {
+                  enrollments: true,
+                },
               },
             },
           },
         },
 
-        include: {
-          schedules: {
-            include: {
-              scheduleSlot: true,
-            },
-          },
-
-          mainTeacher: {
-            include: {
-              user: true,
-            },
-          },
-
-          _count: {
-            select: {
-              enrollments: true,
-            },
-          },
+        orderBy: {
+          startTime: 'asc',
         },
       }),
     ]);
@@ -266,24 +246,15 @@ export class DashboardService {
 
         recentActivityData,
 
-        todayClasses: todayClasses.map((courseClass) => {
-          const todaySchedule = this.getTodaySchedule(
-            courseClass.schedules,
-            currentWeekday,
-          );
+        todayClasses: todaySessions.map((session) => ({
+          name: session.courseClass.name,
 
-          return {
-            name: courseClass.name,
+          teacher: session.courseClass.mainTeacher.user.fullName,
 
-            teacher: courseClass.mainTeacher.user.fullName,
+          totalStudents: session.courseClass._count.enrollments,
 
-            totalStudents: courseClass._count.enrollments,
-
-            time: todaySchedule
-              ? `${todaySchedule.scheduleSlot.startTime} - ${todaySchedule.scheduleSlot.endTime}`
-              : '',
-          };
-        }),
+          time: `${formatDate(session.startTime, 'HH:mm')} - ${formatDate(session.endTime, 'HH:mm')}`,
+        })),
       },
     );
   }

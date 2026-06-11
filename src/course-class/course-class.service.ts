@@ -12,6 +12,7 @@ import {
   mapCourseClassResponse,
 } from './mappers/course-class.mapper';
 import { getCurrentWeekdayCustom } from '../utils/date';
+import { addDays } from 'date-fns';
 
 @Injectable()
 export class CourseClassService {
@@ -47,13 +48,13 @@ export class CourseClassService {
 
     if (!courseClass) throw new NotFoundException();
 
-    const start = new Date(courseClass.startDate);
+    let currentDate = new Date(courseClass.startDate);
     const end = new Date(courseClass.endDate);
 
     const sessions: Prisma.CourseClassSessionCreateManyInput[] = [];
 
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const weekday = getCurrentWeekdayCustom(d);
+    while (currentDate <= end) {
+      const weekday = getCurrentWeekdayCustom(currentDate);
 
       const matchedSlots = courseClass.schedules.filter(
         (s) => s.scheduleSlot.weekday === weekday,
@@ -67,10 +68,10 @@ export class CourseClassService {
           .split(':')
           .map(Number);
 
-        const sessionStart = new Date(d);
+        const sessionStart = new Date(currentDate);
         sessionStart.setHours(startHour, startMin, 0, 0);
 
-        const sessionEnd = new Date(d);
+        const sessionEnd = new Date(currentDate);
         sessionEnd.setHours(endHour, endMin, 0, 0);
 
         sessions.push({
@@ -80,6 +81,8 @@ export class CourseClassService {
           endTime: sessionEnd,
         });
       }
+
+      currentDate = addDays(currentDate, 1);
     }
 
     await this.prismaService.courseClassSession.createMany({
