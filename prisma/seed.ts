@@ -7,10 +7,10 @@ async function main() {
   /********************
    * 1. USERS
    ********************/
-  const adminPassword = await bcrypt.hash('Admin@123', 10);
-  const staffPassword = await bcrypt.hash('Staff@123', 10);
+  const adminPassword = await bcrypt.hash('123456', 10);
+  const staffPassword = await bcrypt.hash('123456', 10);
 
-  const admin = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'admin@gmail.com' },
     update: {},
     create: {
@@ -21,7 +21,7 @@ async function main() {
     },
   });
 
-  const staff = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'staff@gmail.com' },
     update: {},
     create: {
@@ -32,15 +32,16 @@ async function main() {
     },
   });
 
-  console.log({ admin, staff });
-
   /********************
    * 2. ROOM
    ********************/
   await prisma.room.createMany({
     data: [
       { roomCode: 'R001', name: 'Room A', capacity: 30 },
-      { roomCode: 'R002', name: 'Room B', capacity: 25 },
+      { roomCode: 'R002', name: 'Room B', capacity: 35 },
+      { roomCode: 'R003', name: 'Room C', capacity: 40 },
+      { roomCode: 'R004', name: 'Room D', capacity: 45 },
+      { roomCode: 'R005', name: 'Room E', capacity: 50 },
     ],
     skipDuplicates: true,
   });
@@ -52,15 +53,45 @@ async function main() {
     data: [
       {
         slotCode: 'S1',
-        weekday: 2,
+        weekday: 2, // Monday
         startTime: '08:00',
         endTime: '10:00',
       },
       {
         slotCode: 'S2',
-        weekday: 4,
+        weekday: 3, // Tuesday
+        startTime: '08:00',
+        endTime: '10:00',
+      },
+      {
+        slotCode: 'S3',
+        weekday: 4, // Wednesday
         startTime: '18:00',
         endTime: '20:00',
+      },
+      {
+        slotCode: 'S4',
+        weekday: 5, // Thursday
+        startTime: '08:00',
+        endTime: '10:00',
+      },
+      {
+        slotCode: 'S5',
+        weekday: 6, // Friday
+        startTime: '19:00',
+        endTime: '21:00',
+      },
+      {
+        slotCode: 'S6',
+        weekday: 7, // Saturday
+        startTime: '08:00',
+        endTime: '10:00',
+      },
+      {
+        slotCode: 'S7',
+        weekday: 8, // Sunday
+        startTime: '08:00',
+        endTime: '10:00',
       },
     ],
     skipDuplicates: true,
@@ -78,6 +109,18 @@ async function main() {
       level: CourseLevel.BEGINNER,
       status: CourseStatus.OPEN,
       totalSessions: 24,
+    },
+  });
+
+  await prisma.course.upsert({
+    where: { courseCode: 'C002' },
+    update: {},
+    create: {
+      courseCode: 'C002',
+      name: 'Basic Japanese',
+      level: CourseLevel.BEGINNER,
+      status: CourseStatus.OPEN,
+      totalSessions: 48,
     },
   });
 
