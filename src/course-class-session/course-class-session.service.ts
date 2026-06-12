@@ -1,17 +1,25 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
+  ATTENDANCE_INCLUDE,
   COURSE_CLASS_SESSION_INCLUDE,
   CourseClassSessionResponse,
+  mapCourseClassSessionAttendanceResponse,
   mapCourseClassSessionCalendarResponse,
   mapCourseClassSessionResponse,
 } from './mappers/course-class-session.mapper';
 import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
 import { CourseClassSessionQueryDto } from './dto/query-create-course-class-session.dto';
-import { Prisma, SessionStatus } from '@prisma/client';
+import { EnrollmentStatus, Prisma, SessionStatus } from '@prisma/client';
 import { startOfDay, endOfDay } from 'date-fns';
 import { CourseClassSessionCalendarQueryDto } from './dto/query-calendar-course-class-session.dto';
+import { BASE_USER_INCLUDE } from '../user/constants/user.constants';
+import { TakeAttendanceDto } from './dto/take-attendance.dto';
 
 @Injectable()
 export class CourseClassSessionService {
@@ -200,5 +208,131 @@ export class CourseClassSessionService {
         status: SessionStatus.CANCELLED,
       },
     });
+  }
+
+  /*************************************************************
+   * Điểm danh (Attendance)
+   *************************************************************/
+  async attendance(id: string) {
+    const session = await this.prismaService.courseClassSession.findUnique({
+      where: {
+        id,
+      },
+
+      include: {
+        attendances: {
+          include: ATTENDANCE_INCLUDE,
+        },
+
+        courseClass: {
+          include: {
+            enrollments: {
+              where: {
+                status: EnrollmentStatus.ACTIVE,
+              },
+
+              include: {
+                student: {
+                  include: BASE_USER_INCLUDE,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      throw new NotFoundException('Không tìm thấy ca học');
+    }
+
+    const attendanceMap = new Map(
+      session.attendances.map((attendance) => [
+        attendance.studentId,
+        attendance,
+      ]),
+    );
+
+    const students = session.courseClass.enrollments.map((enrollment) => {
+      const attendance = attendanceMap.get(enrollment.studentId);
+
+      return {
+        studentId: enrollment.student.id,
+        studentCode: enrollment.student.studentCode,
+        fullName: enrollment.student.user.fullName,
+
+        attendanceId: attendance?.id ?? null,
+        status: attendance?.status ?? null,
+        note: attendance?.note ?? null,
+      };
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Lấy danh sách điểm danh thành công',
+      mapCourseClassSessionAttendanceResponse(session, students),
+    );
+  }
+
+  async takeAttendance(
+    userId: string,
+    sessionId: string,
+    dto: TakeAttendanceDto,
+  ) {
+    const session = await this.getCourseClassSessionByIdOrThrow(sessionId);
+
+    const enrollments = await this.prismaService.enrollment.findMany({
+      where: {
+        courseClassId: session.courseClassId,
+        status: EnrollmentStatus.ACTIVE,
+      },
+
+      select: {
+        studentId: true,
+      },
+    });
+
+    const enrolledStudentIds = new Set(
+      enrollments.map((item) => item.studentId),
+    );
+
+    for (const attendance of dto.attendances) {
+      if (!enrolledStudentIds.has(attendance.studentId)) {
+        throw new BadRequestException('Học viên không thuộc lớp học');
+      }
+    }
+
+    /* upsert giúp cho việc cập nhật nếu bản ghi đã tồn tại hoặc tạo mới nếu chưa có bản ghi điểm danh */
+    await this.prismaService.$transaction(
+      dto.attendances.map((attendance) =>
+        this.prismaService.attendance.upsert({
+          where: {
+            sessionId_studentId: {
+              sessionId,
+              studentId: attendance.studentId,
+            },
+          },
+
+          create: {
+            sessionId,
+            studentId: attendance.studentId,
+            status: attendance.status,
+            note: attendance.note,
+
+            recordedByUserId: userId,
+          },
+
+          update: {
+            status: attendance.status,
+            note: attendance.note,
+
+            recordedByUserId: userId,
+          },
+        }),
+      ),
+    );
+
+    return CustomResponse(true, StatusCode.OK, 'Điểm danh thành công');
   }
 }

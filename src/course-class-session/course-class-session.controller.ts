@@ -1,11 +1,27 @@
-import { Controller, Get, Body, Param, Query, Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  Param,
+  Query,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { CourseClassSessionService } from './course-class-session.service';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { CourseClassSessionQueryDto } from './dto/query-create-course-class-session.dto';
 import { CourseClassSessionCalendarQueryDto } from './dto/query-calendar-course-class-session.dto';
+import { TakeAttendanceDto } from './dto/take-attendance.dto';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import type { AuthUser } from '../auth/types/auth-jwt-user.type';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('course-class-sessions')
 export class CourseClassSessionController {
   constructor(
@@ -55,6 +71,28 @@ export class CourseClassSessionController {
   })
   async cancel(@Param('id') id: string) {
     return this.courseClassSessionService.cancel(id);
+  }
+
+  @Get(':id/attendance')
+  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
+  @ApiOperation({
+    summary: 'Lấy danh sách điểm danh của ca học',
+  })
+  async attendance(@Param('id') id: string) {
+    return this.courseClassSessionService.attendance(id);
+  }
+
+  @Post(':id/attendance')
+  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
+  @ApiOperation({
+    summary: 'Điểm danh ca học',
+  })
+  async takeAttendance(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body() dto: TakeAttendanceDto,
+  ) {
+    return this.courseClassSessionService.takeAttendance(user.id, id, dto);
   }
 
   // @Patch(':id/rescheduled')

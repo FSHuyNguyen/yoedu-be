@@ -135,7 +135,7 @@ export class EnrollmentService {
       dto.courseClassId,
     );
 
-    this.validateCourseClassOpen(courseClass);
+    // this.validateCourseClassOpen(courseClass);
 
     await this.validateStudentCanEnroll(dto.studentId, courseClass);
 

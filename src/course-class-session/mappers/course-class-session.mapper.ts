@@ -2,6 +2,14 @@ import { Prisma, SessionStatus } from '@prisma/client';
 import { BASE_USER_INCLUDE } from '../../user/constants/user.constants';
 import { mappedWeekday } from '../../schedule/mappers/schedule.mapper';
 
+export const ATTENDANCE_INCLUDE = {
+  student: {
+    include: {
+      user: true,
+    },
+  },
+} satisfies Prisma.AttendanceInclude;
+
 export const COURSE_CLASS_SESSION_INCLUDE = {
   courseClass: {
     include: {
@@ -96,5 +104,23 @@ export const mapCourseClassSessionCalendarResponse = (
     roomName: session.courseClass.room.name,
 
     note: session.note ?? '',
+  };
+};
+
+export const mapCourseClassSessionAttendanceResponse = (
+  session: any,
+  students: any,
+) => {
+  return {
+    sessionId: session.id,
+
+    className: session.courseClass.name,
+
+    startTime: session.startTime,
+    endTime: session.endTime,
+
+    status: session.status,
+
+    students,
   };
 };
