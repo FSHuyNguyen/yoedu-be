@@ -52,8 +52,8 @@ export class StudentController {
   // GET /students?page=1&limit=10&keySearch=huy
   @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
   @Get()
-  findAll(@Query() query: StudentQueryDto) {
-    return this.studentService.findAll(query);
+  findAll(@CurrentUser() user: AuthUser, @Query() query: StudentQueryDto) {
+    return this.studentService.findAll(user, query);
   }
 
   // GET /students/:id

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCourseClassDto } from './dto/create-course-class.dto';
 import { UpdateCourseClassDto } from './dto/update-course-class.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
+import { EnrollmentStatus, Prisma, Role } from '@prisma/client';
 import { generateCode } from '../shared/utils/generate-code';
 import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
@@ -13,6 +13,7 @@ import {
 } from './mappers/course-class.mapper';
 import { getCurrentWeekdayCustom } from '../utils/date';
 import { addDays } from 'date-fns';
+import type { AuthUser } from '../auth/types/auth-jwt-user.type';
 
 @Injectable()
 export class CourseClassService {
@@ -197,7 +198,7 @@ export class CourseClassService {
     );
   }
 
-  async findAll(query: CourseClassQueryDto) {
+  async findAll(currentUser: AuthUser, query: CourseClassQueryDto) {
     const {
       page = 1,
       limit = 10,
@@ -213,50 +214,129 @@ export class CourseClassService {
 
     const skip = (page - 1) * limit;
 
-    const where: Prisma.CourseClassWhereInput = {};
+    const andConditions: Prisma.CourseClassWhereInput[] = [];
+
+    /*************************************************************
+     * FILTERS
+     *************************************************************/
 
     if (courseId) {
-      where.courseId = courseId;
+      andConditions.push({
+        courseId,
+      });
     }
 
     if (roomId) {
-      where.roomId = roomId;
+      andConditions.push({
+        roomId,
+      });
     }
 
     if (scheduleSlotId) {
-      where.schedules = {
-        some: {
-          scheduleSlotId,
+      andConditions.push({
+        schedules: {
+          some: {
+            scheduleSlotId,
+          },
         },
-      };
+      });
     }
 
     if (mainTeacherId) {
-      where.mainTeacherId = mainTeacherId;
+      andConditions.push({
+        mainTeacherId,
+      });
     }
 
     if (startDate) {
-      where.startDate = {
-        gte: new Date(startDate),
-      };
+      andConditions.push({
+        startDate: {
+          gte: new Date(startDate),
+        },
+      });
     }
 
     if (endDate) {
-      where.endDate = {
-        lte: new Date(endDate),
-      };
+      andConditions.push({
+        endDate: {
+          lte: new Date(endDate),
+        },
+      });
     }
 
     if (keySearch) {
-      where.OR = [
-        {
-          name: {
-            contains: keySearch,
-            mode: 'insensitive',
+      andConditions.push({
+        OR: [
+          {
+            name: {
+              contains: keySearch,
+              mode: 'insensitive',
+            },
           },
-        },
-      ];
+          {
+            classCode: {
+              contains: keySearch,
+              mode: 'insensitive',
+            },
+          },
+        ],
+      });
     }
+
+    /*************************************************************
+     * PERMISSION
+     *************************************************************/
+
+    switch (currentUser.role) {
+      case Role.TEACHER:
+        andConditions.push({
+          OR: [
+            {
+              mainTeacherId: currentUser.teacherId!,
+            },
+            {
+              assistantTeacherId: currentUser.teacherId!,
+            },
+          ],
+        });
+        break;
+
+      case Role.STUDENT:
+        andConditions.push({
+          enrollments: {
+            some: {
+              studentId: currentUser.studentId!,
+              status: EnrollmentStatus.ACTIVE,
+            },
+          },
+        });
+        break;
+
+      case Role.PARENT:
+        andConditions.push({
+          enrollments: {
+            some: {
+              student: {
+                parentId: currentUser.parentId!,
+              },
+              status: EnrollmentStatus.ACTIVE,
+            },
+          },
+        });
+        break;
+
+      case Role.ADMIN:
+      case Role.STAFF:
+      default:
+        break;
+    }
+
+    const where: Prisma.CourseClassWhereInput =
+      andConditions.length > 0
+        ? {
+            AND: andConditions,
+          }
+        : {};
 
     const [courseClasses, total] = await Promise.all([
       this.prismaService.courseClass.findMany({

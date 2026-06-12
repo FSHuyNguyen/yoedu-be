@@ -21,8 +21,6 @@ import {
   EnrollmentResponse,
   mapEnrollmentResponse,
 } from './mappers/enrollment.mapper';
-import { CourseClassStatus } from '../course-class/enum/course-class-status.enum';
-import { getCourseClassStatus } from '../course-class/utils/course-class-status';
 import type { AuthUser } from '../auth/types/auth-jwt-user.type';
 
 @Injectable()
@@ -49,19 +47,6 @@ export class EnrollmentService {
     }
 
     return enrollment;
-  }
-
-  private validateCourseClassOpen(courseClass: CourseClass) {
-    const status = getCourseClassStatus(
-      courseClass.startDate,
-      courseClass.endDate,
-    );
-
-    if (status !== CourseClassStatus.OPEN) {
-      throw new BadRequestException(
-        'Chỉ được thao tác khi lớp chưa khai giảng',
-      );
-    }
   }
 
   private async validateStudentCanEnroll(
@@ -134,8 +119,6 @@ export class EnrollmentService {
     const courseClass = await this.courseClassService.getCourseClassByIdOrThrow(
       dto.courseClassId,
     );
-
-    // this.validateCourseClassOpen(courseClass);
 
     await this.validateStudentCanEnroll(dto.studentId, courseClass);
 
@@ -342,8 +325,6 @@ export class EnrollmentService {
     if (enrollment.status === EnrollmentStatus.COMPLETED) {
       throw new BadRequestException('Không thể hủy đăng ký đã hoàn thành');
     }
-
-    this.validateCourseClassOpen(enrollment.courseClass);
 
     await this.prismaService.enrollment.update({
       where: {

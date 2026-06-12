@@ -37,13 +37,13 @@ export class ParentController {
     return this.parentService.create(dto);
   }
 
-  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
+  @Roles(Role.ADMIN, Role.STAFF)
   @Get()
   findAll(@Query() query: ParentQueryDto) {
     return this.parentService.findAll(query);
   }
 
-  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
+  @Roles(Role.ADMIN, Role.STAFF)
   @Get(':id')
   findById(@Param('id') id: string) {
     return this.parentService.findById(id);

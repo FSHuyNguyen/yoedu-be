@@ -40,7 +40,7 @@ export class TeacherController {
   }
 
   // POST /teachers
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   @Post()
   create(@Body() dto: CreateTeacherDto) {
     return this.teacherService.create(dto);
@@ -61,25 +61,25 @@ export class TeacherController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   update(@Param('id') id: string, @Body() dto: UpdateTeacherDto) {
     return this.teacherService.update(id, dto);
   }
 
   @Patch(':id/active')
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   active(@Param('id') id: string) {
     return this.teacherService.active(id);
   }
 
   @Patch(':id/paused')
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   paused(@Param('id') id: string) {
     return this.teacherService.paused(id);
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
     return this.teacherService.remove(id);
   }

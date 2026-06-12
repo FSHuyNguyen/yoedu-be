@@ -29,25 +29,28 @@ export class CourseClassSessionController {
   ) {}
 
   @Get()
-  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Lấy danh sách lớp học',
   })
-  async findAll(@Query() query: CourseClassSessionQueryDto) {
-    return this.courseClassSessionService.findAll(query);
+  async findAll(
+    @CurrentUser() user: AuthUser,
+    @Query() query: CourseClassSessionQueryDto,
+  ) {
+    return this.courseClassSessionService.findAll(user, query);
   }
 
   @Get('calendar')
-  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Lấy dữ liệu lịch học dạng calendar',
   })
-  async calendar(@Query() query: CourseClassSessionCalendarQueryDto) {
-    return this.courseClassSessionService.calendar(query);
+  async calendar(
+    @CurrentUser() user: AuthUser,
+    @Query() query: CourseClassSessionCalendarQueryDto,
+  ) {
+    return this.courseClassSessionService.calendar(user, query);
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Lấy chi tiết lớp học',
   })
@@ -56,7 +59,7 @@ export class CourseClassSessionController {
   }
 
   @Patch(':id/done')
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
   @ApiOperation({
     summary: 'Đánh dấu ca học hoàn thành',
   })
@@ -74,7 +77,6 @@ export class CourseClassSessionController {
   }
 
   @Get(':id/attendance')
-  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
   @ApiOperation({
     summary: 'Lấy danh sách điểm danh của ca học',
   })

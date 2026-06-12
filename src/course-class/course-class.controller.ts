@@ -18,6 +18,8 @@ import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { CourseClassQueryDto } from './dto/query-course-class.dto';
+import type { AuthUser } from '../auth/types/auth-jwt-user.type';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -40,16 +42,17 @@ export class CourseClassController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
   @ApiOperation({
     summary: 'Lấy danh sách lớp học',
   })
-  async findAll(@Query() query: CourseClassQueryDto) {
-    return this.courseClassService.findAll(query);
+  async findAll(
+    @CurrentUser() user: AuthUser,
+    @Query() query: CourseClassQueryDto,
+  ) {
+    return this.courseClassService.findAll(user, query);
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
   @ApiOperation({
     summary: 'Lấy chi tiết lớp học',
   })

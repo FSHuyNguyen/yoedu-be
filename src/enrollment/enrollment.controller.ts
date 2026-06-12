@@ -23,6 +23,8 @@ import { CreateEnrollmentDto } from './dto/create-enrollment.dto';
 import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
 import { EnrollmentQueryDto } from './dto/query-enrollment.dto';
 import type { AuthUser } from '../auth/types/auth-jwt-user.type';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '@prisma/client';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -31,6 +33,7 @@ export class EnrollmentController {
   constructor(private readonly enrollmentService: EnrollmentService) {}
 
   @Post()
+  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Đăng ký học viên vào khóa học',
   })
@@ -39,6 +42,7 @@ export class EnrollmentController {
   }
 
   @Get()
+  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Lấy danh sách đăng ký khóa học',
   })
@@ -47,6 +51,7 @@ export class EnrollmentController {
   }
 
   @Get(':id')
+  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Lấy chi tiết đăng ký khóa học',
   })
@@ -55,6 +60,7 @@ export class EnrollmentController {
   }
 
   @Patch(':id')
+  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Cập nhật đăng ký khóa học',
   })
@@ -67,6 +73,7 @@ export class EnrollmentController {
   }
 
   @Delete(':id')
+  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Xóa đăng ký khóa học',
   })

@@ -50,43 +50,43 @@ export class UserController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   findAll(@Query() query: UserQueryDto) {
     return this.userService.findAll(query);
   }
 
   @Post()
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(id, updateUserDto);
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   findById(@Param('id') id: string) {
     return this.userService.findById(id);
   }
 
   @Patch(':id/active')
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   active(@Param('id') id: string) {
     return this.userService.active(id);
   }
 
   @Patch(':id/inactive')
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   unActive(@Param('id') id: string) {
     return this.userService.unActive(id);
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN, Role.STAFF)
+  @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
     return this.userService.remove(id);
   }

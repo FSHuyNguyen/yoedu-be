@@ -15,11 +15,12 @@ import {
 import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
 import { CourseClassSessionQueryDto } from './dto/query-create-course-class-session.dto';
-import { EnrollmentStatus, Prisma, SessionStatus } from '@prisma/client';
+import { EnrollmentStatus, Prisma, Role, SessionStatus } from '@prisma/client';
 import { startOfDay, endOfDay } from 'date-fns';
 import { CourseClassSessionCalendarQueryDto } from './dto/query-calendar-course-class-session.dto';
 import { BASE_USER_INCLUDE } from '../user/constants/user.constants';
 import { TakeAttendanceDto } from './dto/take-attendance.dto';
+import type { AuthUser } from '../auth/types/auth-jwt-user.type';
 
 @Injectable()
 export class CourseClassSessionService {
@@ -46,7 +47,63 @@ export class CourseClassSessionService {
     return courseClassSession;
   }
 
-  async findAll(query: CourseClassSessionQueryDto) {
+  private buildSessionPermissionWhere(
+    user: AuthUser,
+  ): Prisma.CourseClassSessionWhereInput {
+    switch (user.role) {
+      case Role.ADMIN:
+      case Role.STAFF:
+        return {};
+
+      case Role.TEACHER:
+        return {
+          courseClass: {
+            OR: [
+              {
+                mainTeacherId: user.teacherId!,
+              },
+              {
+                assistantTeacherId: user.teacherId!,
+              },
+            ],
+          },
+        };
+
+      case Role.STUDENT:
+        return {
+          courseClass: {
+            enrollments: {
+              some: {
+                studentId: user.studentId!,
+                status: EnrollmentStatus.ACTIVE,
+              },
+            },
+          },
+        };
+
+      case Role.PARENT:
+        return {
+          courseClass: {
+            enrollments: {
+              some: {
+                status: EnrollmentStatus.ACTIVE,
+
+                student: {
+                  parentId: user.parentId!,
+                },
+              },
+            },
+          },
+        };
+
+      default:
+        return {
+          id: '__NO_PERMISSION__',
+        };
+    }
+  }
+
+  async findAll(currentUser: AuthUser, query: CourseClassSessionQueryDto) {
     const {
       page = 1,
       limit = 10,
@@ -101,11 +158,11 @@ export class CourseClassSessionService {
       });
     }
 
-    const where: Prisma.CourseClassSessionWhereInput = andConditions.length
-      ? {
-          AND: andConditions,
-        }
-      : {};
+    const permissionWhere = this.buildSessionPermissionWhere(currentUser);
+
+    const where: Prisma.CourseClassSessionWhereInput = {
+      AND: [permissionWhere, ...andConditions],
+    };
 
     const [courseClassesSession, total] = await Promise.all([
       this.prismaService.courseClassSession.findMany({
@@ -138,30 +195,36 @@ export class CourseClassSessionService {
     );
   }
 
-  async calendar(query: CourseClassSessionCalendarQueryDto) {
+  async calendar(
+    currentUser: AuthUser,
+    query: CourseClassSessionCalendarQueryDto,
+  ) {
     const { startDate, endDate } = query;
 
-    const where: Prisma.CourseClassSessionWhereInput = {};
+    const permissionWhere = this.buildSessionPermissionWhere(currentUser);
+
+    const dateWhere: Prisma.CourseClassSessionWhereInput = {};
 
     if (startDate || endDate) {
-      where.startTime = {
+      dateWhere.startTime = {
         ...(startDate && {
           gte: startOfDay(new Date(startDate)),
         }),
-
         ...(endDate && {
           lte: endOfDay(new Date(endDate)),
         }),
       };
     }
 
+    const where: Prisma.CourseClassSessionWhereInput = {
+      AND: [permissionWhere, dateWhere],
+    };
+
     const sessions = await this.prismaService.courseClassSession.findMany({
       where,
-
       orderBy: {
         startTime: 'asc',
       },
-
       include: COURSE_CLASS_SESSION_INCLUDE,
     });
 

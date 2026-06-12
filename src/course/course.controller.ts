@@ -46,7 +46,7 @@ export class CourseController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
+  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Lấy danh sách khóa học',
   })
@@ -55,7 +55,7 @@ export class CourseController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.STAFF, Role.TEACHER)
+  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Lấy chi tiết khóa học',
   })

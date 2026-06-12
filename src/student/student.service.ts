@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -16,6 +20,7 @@ import { UserService } from '../user/user.service';
 import { mapStudentResponse, STUDENT_INCLUDE } from './mappers/student.mapper';
 import { Prisma, Role, Status, StudentStatus } from '@prisma/client';
 import { StudentQueryDto } from './dto/query-student.dto';
+import { AuthUser } from '../auth/types/auth-jwt-user.type';
 
 @Injectable()
 export class StudentService {
@@ -173,7 +178,7 @@ export class StudentService {
     );
   }
 
-  async findAll(query: StudentQueryDto) {
+  async findAll(currentUser: AuthUser, query: StudentQueryDto) {
     const { page = 1, limit = 10, status, keySearch } = query;
 
     const skip = (page - 1) * limit;
@@ -202,8 +207,32 @@ export class StudentService {
 
     const where: Prisma.StudentWhereInput = {
       user: userWhere,
-      status: status ? status : undefined,
+      status: status || undefined,
     };
+
+    /*************************************************************
+     * PERMISSION
+     *************************************************************/
+    if (currentUser.role === Role.TEACHER) {
+      if (!currentUser.teacherId) {
+        throw new ForbiddenException('Tài khoản giáo viên không hợp lệ');
+      }
+
+      where.enrollments = {
+        some: {
+          courseClass: {
+            OR: [
+              {
+                mainTeacherId: currentUser.teacherId,
+              },
+              {
+                assistantTeacherId: currentUser.teacherId,
+              },
+            ],
+          },
+        },
+      };
+    }
 
     const [students, total] = await Promise.all([
       this.prismaService.student.findMany({
