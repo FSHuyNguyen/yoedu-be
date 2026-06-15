@@ -7,6 +7,7 @@ import { CourseClassModule } from '../course-class/course-class.module';
 
 @Module({
   imports: [PrismaModule, StudentModule, CourseClassModule],
+  exports: [EnrollmentService],
   controllers: [EnrollmentController],
   providers: [EnrollmentService],
 })

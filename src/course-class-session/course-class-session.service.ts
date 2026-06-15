@@ -15,12 +15,20 @@ import {
 import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
 import { CourseClassSessionQueryDto } from './dto/query-create-course-class-session.dto';
-import { EnrollmentStatus, Prisma, Role, SessionStatus } from '@prisma/client';
-import { startOfDay, endOfDay } from 'date-fns';
+import {
+  AttendanceStatus,
+  EnrollmentStatus,
+  LeaveRequestStatus,
+  Prisma,
+  Role,
+  SessionStatus,
+} from '@prisma/client';
+import { startOfDay, endOfDay, formatDate } from 'date-fns';
 import { CourseClassSessionCalendarQueryDto } from './dto/query-calendar-course-class-session.dto';
 import { BASE_USER_INCLUDE } from '../user/constants/user.constants';
 import { TakeAttendanceDto } from './dto/take-attendance.dto';
 import type { AuthUser } from '../auth/types/auth-jwt-user.type';
+import { mappedWeekday } from '../schedule/mappers/schedule.mapper';
 
 @Injectable()
 export class CourseClassSessionService {
@@ -45,6 +53,24 @@ export class CourseClassSessionService {
     }
 
     return courseClassSession;
+  }
+
+  /* 
+      Chỉ lấy những lớp chưa kết thúc để hiển thị trong dropdown khi tạo mới hoặc cập nhật lớp học, tránh việc chọn nhầm lớp đã kết thúc
+    */
+  async getCourseClassSessionOptions() {
+    const courseClassSessions =
+      await this.prismaService.courseClassSession.findMany({
+        where: {
+          status: SessionStatus.SCHEDULED,
+        },
+        include: COURSE_CLASS_SESSION_INCLUDE,
+      });
+
+    return courseClassSessions.map((courseClassSession) => ({
+      value: courseClassSession.id,
+      label: `${courseClassSession.courseClass.course.name} - ${courseClassSession.courseClass.name} - ${mappedWeekday[courseClassSession.scheduleSlot.weekday]} (${formatDate(courseClassSession.startTime, 'dd/MM/yyyy HH:mm')} - ${formatDate(courseClassSession.endTime, 'dd/MM/yyyy HH:mm')})`,
+    }));
   }
 
   private buildSessionPermissionWhere(
@@ -287,6 +313,12 @@ export class CourseClassSessionService {
           include: ATTENDANCE_INCLUDE,
         },
 
+        leaveRequests: {
+          where: {
+            status: LeaveRequestStatus.APPROVED,
+          },
+        },
+
         courseClass: {
           include: {
             enrollments: {
@@ -310,14 +342,20 @@ export class CourseClassSessionService {
     }
 
     const attendanceMap = new Map(
-      session.attendances.map((attendance) => [
-        attendance.studentId,
-        attendance,
-      ]),
+      session.attendances.map(
+        (attendance) => [attendance.studentId, attendance] as const,
+      ),
+    );
+
+    const leaveRequestMap = new Map(
+      session.leaveRequests.map(
+        (leaveRequest) => [leaveRequest.studentId, leaveRequest] as const,
+      ),
     );
 
     const students = session.courseClass.enrollments.map((enrollment) => {
       const attendance = attendanceMap.get(enrollment.studentId);
+      const leaveRequest = leaveRequestMap.get(enrollment.studentId);
 
       return {
         studentId: enrollment.student.id,
@@ -325,8 +363,12 @@ export class CourseClassSessionService {
         fullName: enrollment.student.user.fullName,
 
         attendanceId: attendance?.id ?? null,
-        status: attendance?.status ?? null,
-        note: attendance?.note ?? null,
+
+        status:
+          attendance?.status ??
+          (leaveRequest ? AttendanceStatus.EXCUSED : null),
+
+        note: attendance?.note ?? leaveRequest?.reason ?? null,
       };
     });
 

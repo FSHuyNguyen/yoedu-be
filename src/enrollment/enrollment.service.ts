@@ -49,6 +49,27 @@ export class EnrollmentService {
     return enrollment;
   }
 
+  async getEnrollmentByStudentAndCourseClassOrThrow(
+    studentId: string,
+    courseClassId: string,
+  ) {
+    const enrollment = await this.prismaService.enrollment.findUnique({
+      where: {
+        studentId_courseClassId: {
+          studentId,
+          courseClassId,
+        },
+      },
+      include: ENROLLMENT_INCLUDE,
+    });
+
+    if (!enrollment) {
+      throw new NotFoundException('Học viên chưa tham gia lớp học này');
+    }
+
+    return enrollment;
+  }
+
   private async validateStudentCanEnroll(
     studentId: string,
     courseClass: CourseClass,

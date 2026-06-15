@@ -13,6 +13,7 @@ import { RoomModule } from './room/room.module';
 import { ScheduleModule } from './schedule/schedule.module';
 import { CourseClassModule } from './course-class/course-class.module';
 import { CourseClassSessionModule } from './course-class-session/course-class-session.module';
+import { LeaveRequestModule } from './leave-request/leave-request.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { CourseClassSessionModule } from './course-class-session/course-class-se
     CourseClassModule,
     EnrollmentModule,
     CourseClassSessionModule,
+    LeaveRequestModule,
   ],
   controllers: [],
   providers: [],

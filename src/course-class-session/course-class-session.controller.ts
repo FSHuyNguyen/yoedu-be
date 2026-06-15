@@ -28,9 +28,14 @@ export class CourseClassSessionController {
     private readonly courseClassSessionService: CourseClassSessionService,
   ) {}
 
+  @Get('options')
+  getCourseClassSessionOptions() {
+    return this.courseClassSessionService.getCourseClassSessionOptions();
+  }
+
   @Get()
   @ApiOperation({
-    summary: 'Lấy danh sách lớp học',
+    summary: 'Lấy danh sách ca học',
   })
   async findAll(
     @CurrentUser() user: AuthUser,
@@ -52,7 +57,7 @@ export class CourseClassSessionController {
 
   @Get(':id')
   @ApiOperation({
-    summary: 'Lấy chi tiết lớp học',
+    summary: 'Lấy chi tiết ca học',
   })
   async findById(@Param('id') id: string) {
     return this.courseClassSessionService.findById(id);
