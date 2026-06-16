@@ -10,7 +10,7 @@ export class LoginDto {
   email!: string;
 
   @ApiProperty({
-    example: 'Admin@123',
+    example: '123456',
     description: 'Mật khẩu đăng nhập',
   })
   @IsString()

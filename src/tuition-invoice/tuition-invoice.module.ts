@@ -1,0 +1,14 @@
+import { Module } from '@nestjs/common';
+import { TuitionInvoiceService } from './tuition-invoice.service';
+import { TuitionInvoiceController } from './tuition-invoice.controller';
+import { PrismaModule } from '../prisma/prisma.module';
+import { StudentModule } from '../student/student.module';
+import { CourseClassModule } from '../course-class/course-class.module';
+import { EnrollmentModule } from '../enrollment/enrollment.module';
+
+@Module({
+  imports: [PrismaModule, StudentModule, CourseClassModule, EnrollmentModule],
+  controllers: [TuitionInvoiceController],
+  providers: [TuitionInvoiceService],
+})
+export class TuitionInvoiceModule {}
