@@ -25,7 +25,6 @@ const mappedStatusText: Record<InvoiceStatus, string> = {
 };
 
 export const mapTuitionInvoiceResponse = (invoice: TuitionInvoiceResponse) => {
-  console.log('invoice', invoice);
   return {
     id: invoice.id,
 

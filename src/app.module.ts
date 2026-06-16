@@ -15,6 +15,7 @@ import { CourseClassModule } from './course-class/course-class.module';
 import { CourseClassSessionModule } from './course-class-session/course-class-session.module';
 import { LeaveRequestModule } from './leave-request/leave-request.module';
 import { TuitionInvoiceModule } from './tuition-invoice/tuition-invoice.module';
+import { PromotionModule } from './promotion/promotion.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { TuitionInvoiceModule } from './tuition-invoice/tuition-invoice.module';
     CourseClassSessionModule,
     LeaveRequestModule,
     TuitionInvoiceModule,
+    PromotionModule,
   ],
   controllers: [],
   providers: [],
