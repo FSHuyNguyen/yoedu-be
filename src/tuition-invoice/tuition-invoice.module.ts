@@ -5,9 +5,16 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { StudentModule } from '../student/student.module';
 import { CourseClassModule } from '../course-class/course-class.module';
 import { EnrollmentModule } from '../enrollment/enrollment.module';
+import { PromotionModule } from '../promotion/promotion.module';
 
 @Module({
-  imports: [PrismaModule, StudentModule, CourseClassModule, EnrollmentModule],
+  imports: [
+    PrismaModule,
+    StudentModule,
+    CourseClassModule,
+    EnrollmentModule,
+    PromotionModule,
+  ],
   controllers: [TuitionInvoiceController],
   providers: [TuitionInvoiceService],
 })

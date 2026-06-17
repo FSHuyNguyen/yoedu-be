@@ -11,7 +11,12 @@ import { StudentService } from '../student/student.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
-import { EnrollmentStatus, InvoiceStatus, Prisma } from '@prisma/client';
+import {
+  DiscountType,
+  EnrollmentStatus,
+  InvoiceStatus,
+  Prisma,
+} from '@prisma/client';
 import { generateCode } from '../shared/utils/generate-code';
 import type { AuthUser } from '../auth/types/auth-jwt-user.type';
 import { TuitionInvoiceQueryDto } from './dto/query-tuition-invoice.dto';
@@ -20,6 +25,7 @@ import {
   TUITION_INVOICE_INCLUDE,
 } from './mappers/tuition-invoice.mapper';
 import { EnrollmentService } from '../enrollment/enrollment.service';
+import { PromotionService } from '../promotion/promotion.service';
 
 @Injectable()
 export class TuitionInvoiceService {
@@ -28,6 +34,7 @@ export class TuitionInvoiceService {
     private readonly studentService: StudentService,
     private readonly courseClassService: CourseClassService,
     private readonly enrollmentService: EnrollmentService,
+    private readonly promotionService: PromotionService,
   ) {}
 
   async getInvoiceByIdOrThrow(id: string) {
@@ -78,38 +85,33 @@ export class TuitionInvoiceService {
 
     const originalAmount = Number(courseClass.tuitionFee);
 
-    // let discountAmount = 0;
+    let discountAmount = 0;
 
-    // if (promotionId) {
-    //   const promotion = await this.prismaService.promotion.findUnique({
-    //     where: { id: promotionId },
-    //   });
+    if (promotionId) {
+      const promotion =
+        await this.promotionService.getPromotionByIdOrThrow(promotionId);
 
-    //   if (!promotion) {
-    //     throw new BadRequestException('Promotion không tồn tại');
-    //   }
+      const value = Number(promotion.discountValue);
 
-    //   const value = Number(promotion.discountValue);
+      if (promotion.discountType === DiscountType.AMOUNT) {
+        discountAmount = value;
+      } else {
+        // PERCENT
+        discountAmount = (originalAmount * value) / 100;
+      }
+    }
 
-    //   if (promotion.discountType === DiscountType.AMOUNT) {
-    //     discountAmount = value;
-    //   } else {
-    //     // PERCENT
-    //     discountAmount = (originalAmount * value) / 100;
-    //   }
-    // }
+    if (discountAmount < 0) {
+      throw new BadRequestException('Số tiền giảm giá không hợp lệ');
+    }
 
-    // if (discountAmount < 0) {
-    //   throw new BadRequestException('Số tiền giảm giá không hợp lệ');
-    // }
+    if (discountAmount > originalAmount) {
+      throw new BadRequestException(
+        'Số tiền giảm giá không được lớn hơn học phí',
+      );
+    }
 
-    // if (discountAmount > originalAmount) {
-    //   throw new BadRequestException(
-    //     'Số tiền giảm giá không được lớn hơn học phí',
-    //   );
-    // }
-
-    const finalAmount = originalAmount;
+    const finalAmount = originalAmount - discountAmount;
 
     await this.prismaService.tuitionInvoice.create({
       data: {
@@ -119,7 +121,7 @@ export class TuitionInvoiceService {
         courseClassId: courseClass.id,
 
         originalAmount,
-        discountAmount: 0,
+        discountAmount,
         finalAmount,
 
         amountPaid: 0,
