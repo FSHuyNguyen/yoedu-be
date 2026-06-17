@@ -18,7 +18,7 @@ export class BasePromotionDto {
 
   @ApiProperty({
     enum: DiscountType,
-    example: '',
+    example: DiscountType.PERCENT,
     description: 'Loại giảm giá',
   })
   @IsEnum(DiscountType)

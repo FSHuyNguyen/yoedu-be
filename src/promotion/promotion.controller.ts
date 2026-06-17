@@ -66,13 +66,22 @@ export class PromotionController {
     return this.promotionService.update(id, dto);
   }
 
-  @Patch(':id/inactivate')
+  @Patch(':id/active')
+  @Roles(Role.ADMIN, Role.STAFF)
+  @ApiOperation({
+    summary: 'Kích hoạt chương trình khuyến mãi',
+  })
+  active(@Param('id') id: string) {
+    return this.promotionService.active(id);
+  }
+
+  @Patch(':id/inactive ')
   @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Vô hiệu hóa chương trình khuyến mãi',
   })
-  inActivate(@Param('id') id: string) {
-    return this.promotionService.inActivate(id);
+  inactive(@Param('id') id: string) {
+    return this.promotionService.inactive(id);
   }
 
   @Delete(':id')

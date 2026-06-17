@@ -11,6 +11,7 @@ import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
 import { PromotionQueryDto } from './dto/query-create-promotion.dto';
 import { Prisma, PromotionStatus } from '@prisma/client';
+import { mapPromotionResponse } from './mappers/promotion.mapper';
 
 @Injectable()
 export class PromotionService {
@@ -202,7 +203,7 @@ export class PromotionService {
       StatusCode.OK,
       'Lấy danh sách chương trình khuyến mãi thành công',
       {
-        items: promotions,
+        items: promotions.map(mapPromotionResponse),
         pagination: {
           total,
           page,
@@ -220,11 +221,33 @@ export class PromotionService {
       true,
       StatusCode.OK,
       'Lấy chi tiết chương trình khuyến mãi thành công',
-      promotion,
+      mapPromotionResponse(promotion),
     );
   }
 
-  async inActivate(id: string) {
+  async active(id: string) {
+    const promotion = await this.getPromotionByIdOrThrow(id);
+
+    if (promotion.status === PromotionStatus.ACTIVE) {
+      throw new BadRequestException(
+        'Chương trình khuyến mãi đã được kích hoạt',
+      );
+    }
+
+    await this.prismaService.promotion.update({
+      where: { id },
+      data: { status: PromotionStatus.ACTIVE },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Kích hoạt chương trình khuyến mãi thành công',
+      null,
+    );
+  }
+
+  async inactive(id: string) {
     const promotion = await this.getPromotionByIdOrThrow(id);
 
     if (promotion.status === PromotionStatus.INACTIVE) {
