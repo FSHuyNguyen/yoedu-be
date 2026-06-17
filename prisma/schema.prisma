@@ -85,12 +85,16 @@ enum InvoiceStatus {
   UNPAID // chưa trả
   PARTIAL // trả 1 phần
   PAID // đủ
-  OVERPAID // trả dư
 }
 
 enum PaymentMethod {
   CASH
   BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  SUCCESS
+  CANCELLED
 }
 
 enum RecipientType {
@@ -515,32 +519,6 @@ model TuitionInvoice {
   @@map("tuition_invoices")
 }
 
-model LearningResult {
-  id String @id @default(uuid())
-
-  studentId String
-  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  courseClassId String
-  courseClass   CourseClass @relation(fields: [courseClassId], references: [id], onDelete: Cascade)
-
-  /// Use first day of month (e.g. 2026-09-01)
-  resultMonth DateTime
-
-  score Decimal? @db.Decimal(5, 2)
-
-  teacherComment String?
-
-  createdByUserId String?
-  createdByUser   User?   @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([studentId, courseClassId, resultMonth])
-  @@map("learning_results")
-}
-
 model Promotion {
   id String @id @default(uuid())
 
@@ -571,7 +549,7 @@ model Payment {
   id String @id @default(uuid())
 
   invoiceId String
-  invoice   TuitionInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoice TuitionInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   paymentCode String @unique
 
@@ -579,10 +557,12 @@ model Payment {
 
   paymentMethod PaymentMethod
 
+  status PaymentStatus @default(SUCCESS)
+
   paidAt DateTime
 
   cashierUserId String?
-  cashierUser   User?   @relation(fields: [cashierUserId], references: [id], onDelete: SetNull)
+  cashierUser User? @relation(fields: [cashierUserId], references: [id], onDelete: SetNull)
 
   note String?
 
@@ -590,6 +570,33 @@ model Payment {
   updatedAt DateTime @updatedAt
 
   @@map("payments")
+}
+
+
+model LearningResult {
+  id String @id @default(uuid())
+
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  courseClassId String
+  courseClass   CourseClass @relation(fields: [courseClassId], references: [id], onDelete: Cascade)
+
+  /// Use first day of month (e.g. 2026-09-01)
+  resultMonth DateTime
+
+  score Decimal? @db.Decimal(5, 2)
+
+  teacherComment String?
+
+  createdByUserId String?
+  createdByUser   User?   @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, courseClassId, resultMonth])
+  @@map("learning_results")
 }
 
 model Notification {

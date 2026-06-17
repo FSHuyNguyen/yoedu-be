@@ -15,6 +15,7 @@ import { PromotionModule } from '../promotion/promotion.module';
     EnrollmentModule,
     PromotionModule,
   ],
+  exports: [TuitionInvoiceService],
   controllers: [TuitionInvoiceController],
   providers: [TuitionInvoiceService],
 })

@@ -21,7 +21,6 @@ const mappedStatusText: Record<InvoiceStatus, string> = {
   UNPAID: 'Chưa thanh toán',
   PARTIAL: 'Đã thanh toán một phần',
   PAID: 'Đã thanh toán',
-  OVERPAID: 'Đã thanh toán vượt mức',
 };
 
 export const mapTuitionInvoiceResponse = (invoice: TuitionInvoiceResponse) => {
