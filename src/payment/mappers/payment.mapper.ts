@@ -1,4 +1,4 @@
-import { InvoiceStatus, Prisma } from '@prisma/client';
+import { PaymentStatus, Prisma } from '@prisma/client';
 import {
   USER_SELECT,
   BASE_USER_INCLUDE,
@@ -21,10 +21,9 @@ export type PaymentResponse = Prisma.PaymentGetPayload<{
   include: typeof PAYMENT_INCLUDE;
 }>;
 
-const mappedStatusText: Record<InvoiceStatus, string> = {
-  UNPAID: 'Chưa thanh toán',
-  PARTIAL: 'Đã thanh toán một phần',
-  PAID: 'Đã thanh toán',
+const mappedStatusText: Record<PaymentStatus, string> = {
+  SUCCESS: 'Thành công',
+  CANCELLED: 'Đã hủy',
 };
 
 export const mapPaymentResponse = (payment: PaymentResponse) => {

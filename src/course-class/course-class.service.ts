@@ -110,6 +110,7 @@ export class CourseClassService {
     });
 
     return courseClasses.map((courseClass) => ({
+      ...courseClass,
       value: courseClass.id,
       label: courseClass.name,
     }));

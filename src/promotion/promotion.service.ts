@@ -40,6 +40,7 @@ export class PromotionService {
     });
 
     return promotions.map((promotion) => ({
+      ...promotion,
       value: promotion.id,
       label: promotion.name,
     }));

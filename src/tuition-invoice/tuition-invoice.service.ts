@@ -52,6 +52,24 @@ export class TuitionInvoiceService {
     return invoice;
   }
 
+  /* Lấy ra các hóa đơn cần thanh toán có trạng thái là UNPAID, PARTIAL */
+  async getTuitionOptions() {
+    const tuitions = await this.prismaService.tuitionInvoice.findMany({
+      where: {
+        status: {
+          in: [InvoiceStatus.UNPAID, InvoiceStatus.PARTIAL],
+        },
+      },
+      include: TUITION_INVOICE_INCLUDE,
+    });
+
+    return tuitions.map((tuition) => ({
+      ...tuition,
+      value: tuition.id,
+      label: tuition.invoiceCode,
+    }));
+  }
+
   async create(dto: CreateTuitionInvoiceDto) {
     const { studentId, courseClassId, dueDate, note, promotionId } = dto;
 

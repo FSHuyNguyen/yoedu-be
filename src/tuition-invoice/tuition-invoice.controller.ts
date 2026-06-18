@@ -27,6 +27,11 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 export class TuitionInvoiceController {
   constructor(private readonly tuitionInvoiceService: TuitionInvoiceService) {}
 
+  @Get('options')
+  getTuitionOptions() {
+    return this.tuitionInvoiceService.getTuitionOptions();
+  }
+
   @Get('me')
   @Roles(Role.STUDENT)
   findAllMe(

@@ -113,6 +113,7 @@ export class PaymentService {
       paymentMethod,
       paidAtFrom,
       paidAtTo,
+      status,
     } = query;
 
     const skip = (page - 1) * limit;
@@ -144,6 +145,12 @@ export class PaymentService {
         paidAt: {
           lte: new Date(paidAtTo),
         },
+      });
+    }
+
+    if (status) {
+      andConditions.push({
+        status,
       });
     }
 
