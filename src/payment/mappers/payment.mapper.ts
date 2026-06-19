@@ -36,6 +36,9 @@ export const mapPaymentResponse = (payment: PaymentResponse) => {
     invoiceId: payment.invoiceId,
     invoiceCode: payment.invoice?.invoiceCode,
 
+    amountPaid: payment.invoice?.amountPaid,
+    balanceAmount: payment.invoice?.balanceAmount,
+
     studentId: payment.invoice?.studentId,
     studentName: payment.invoice?.student?.user?.fullName,
 
