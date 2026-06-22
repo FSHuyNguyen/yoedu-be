@@ -43,6 +43,7 @@ export class CourseService {
     });
 
     return courses.map((course) => ({
+      ...course,
       value: course.id,
       label: course.name,
     }));

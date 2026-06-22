@@ -334,6 +334,58 @@ export class EnrollmentService {
     );
   }
 
+  async drop(user: AuthUser, id: string) {
+    const enrollment = await this.getEnrollmentByIdOrThrow(id);
+
+    this.validateEnrollmentPermission(user, enrollment);
+
+    if (enrollment.status === EnrollmentStatus.DROPPED) {
+      throw new BadRequestException('Đăng ký đã bị nghỉ giữa chừng trước đó');
+    }
+
+    await this.prismaService.enrollment.update({
+      where: {
+        id,
+      },
+      data: {
+        status: EnrollmentStatus.DROPPED,
+      },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Tạm dừng đăng ký khóa học thành công',
+      null,
+    );
+  }
+
+  async pause(user: AuthUser, id: string) {
+    const enrollment = await this.getEnrollmentByIdOrThrow(id);
+
+    this.validateEnrollmentPermission(user, enrollment);
+
+    if (enrollment.status === EnrollmentStatus.PAUSED) {
+      throw new BadRequestException('Đăng ký đã bị tạm dừng trước đó');
+    }
+
+    await this.prismaService.enrollment.update({
+      where: {
+        id,
+      },
+      data: {
+        status: EnrollmentStatus.PAUSED,
+      },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Tạm dừng đăng ký khóa học thành công',
+      null,
+    );
+  }
+
   async remove(user: AuthUser, id: string) {
     const enrollment = await this.getEnrollmentByIdOrThrow(id);
 

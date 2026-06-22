@@ -1,5 +1,6 @@
 import { EnrollmentStatus, Prisma } from '@prisma/client';
 import { BASE_USER_INCLUDE } from '../../user/constants/user.constants';
+import { mapSchedule } from '../../schedule/mappers/schedule.mapper';
 
 export const ENROLLMENT_INCLUDE = {
   student: {
@@ -8,6 +9,11 @@ export const ENROLLMENT_INCLUDE = {
   courseClass: {
     include: {
       course: true,
+      schedules: {
+        include: {
+          scheduleSlot: true,
+        },
+      },
     },
   },
 } satisfies Prisma.EnrollmentInclude;
@@ -26,16 +32,25 @@ const mappedStatusText: Record<string, string> = {
 
 export const mapEnrollmentResponse = (enrollment: EnrollmentResponse) => {
   return {
-    id: enrollment.id,
-
-    studentId: enrollment.studentId,
-    studentName: enrollment.student.user.fullName,
+    ...enrollment.courseClass,
 
     courseClassId: enrollment.courseClass.id,
     courseClassName: enrollment.courseClass.name,
 
+    scheduleSlotIds: enrollment.courseClass.schedules.map(
+      (item) => item.scheduleSlotId,
+    ),
+    scheduleInformation: enrollment.courseClass.schedules.map((item) =>
+      mapSchedule(item.scheduleSlot),
+    ),
+
     courseId: enrollment.courseClass.course.id,
     courseName: enrollment.courseClass.course.name,
+
+    id: enrollment.id,
+
+    studentId: enrollment.studentId,
+    studentName: enrollment.student.user.fullName,
 
     status: enrollment.status,
     statusText: mappedStatusText[enrollment.status],

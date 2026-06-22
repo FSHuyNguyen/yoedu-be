@@ -42,7 +42,6 @@ export class EnrollmentController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Lấy danh sách đăng ký khóa học',
   })
@@ -51,7 +50,6 @@ export class EnrollmentController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Lấy chi tiết đăng ký khóa học',
   })
@@ -72,8 +70,15 @@ export class EnrollmentController {
     return this.enrollmentService.update(user, id, dto);
   }
 
+  @Patch(':id/pause')
+  @ApiOperation({
+    summary: 'Tạm dừng đăng ký khóa học',
+  })
+  pause(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.enrollmentService.pause(user, id);
+  }
+
   @Delete(':id')
-  @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Xóa đăng ký khóa học',
   })

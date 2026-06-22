@@ -41,10 +41,11 @@ export const mapCourseClassSessionResponse = (
   courseClassSession: CourseClassSessionResponse,
 ) => {
   return {
-    id: courseClassSession.id,
-
+    ...courseClassSession.courseClass.course,
     courseId: courseClassSession.courseClass.course.id,
     courseName: courseClassSession.courseClass.course.name,
+
+    id: courseClassSession.id,
 
     courseClassId: courseClassSession.courseClass.id,
     courseClassName: courseClassSession.courseClass.name,

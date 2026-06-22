@@ -5,13 +5,7 @@ import { getCourseClassStatus } from '../utils/course-class-status';
 import { CourseClassStatus } from '../enum/course-class-status.enum';
 
 export const COUSE_CLASS_INCLUDE = {
-  course: {
-    select: {
-      name: true,
-      totalSessions: true,
-      level: true,
-    },
-  },
+  course: {},
   room: {
     select: {
       name: true,
@@ -47,15 +41,15 @@ export const mapCourseClassResponse = (courseClass: CourseClassResponse) => {
   );
 
   return {
+    ...courseClass.course,
+    courseId: courseClass.courseId,
+    courseName: courseClass.course.name,
+
     id: courseClass.id,
 
     classCode: courseClass.classCode,
 
     name: courseClass.name,
-
-    courseId: courseClass.courseId,
-    courseName: courseClass.course.name,
-    totalSessions: courseClass.course.totalSessions,
 
     roomId: courseClass.roomId,
     roomName: courseClass.room.name,
