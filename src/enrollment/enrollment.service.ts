@@ -386,6 +386,38 @@ export class EnrollmentService {
     );
   }
 
+  async active(user: AuthUser, id: string) {
+    const enrollment = await this.getEnrollmentByIdOrThrow(id);
+
+    this.validateEnrollmentPermission(user, enrollment);
+
+    if (enrollment.status === EnrollmentStatus.ACTIVE) {
+      throw new BadRequestException('Đăng ký đã được kích hoạt trước đó');
+    }
+
+    if (enrollment.status === EnrollmentStatus.COMPLETED) {
+      throw new BadRequestException(
+        'Không thể kích hoạt đăng ký đã hoàn thành',
+      );
+    }
+
+    await this.prismaService.enrollment.update({
+      where: {
+        id,
+      },
+      data: {
+        status: EnrollmentStatus.ACTIVE,
+      },
+    });
+
+    return CustomResponse(
+      true,
+      StatusCode.OK,
+      'Kích hoạt đăng ký khóa học thành công',
+      null,
+    );
+  }
+
   async remove(user: AuthUser, id: string) {
     const enrollment = await this.getEnrollmentByIdOrThrow(id);
 

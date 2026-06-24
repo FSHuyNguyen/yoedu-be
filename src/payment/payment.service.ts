@@ -13,12 +13,14 @@ import { InvoiceStatus, Prisma } from '@prisma/client';
 import { generateCode } from '../shared/utils/generate-code';
 import { mapPaymentResponse, PAYMENT_INCLUDE } from './mappers/payment.mapper';
 import { PaymentQueryDto } from './dto/query-payment.dto';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class PaymentService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly tuitionInvoiceService: TuitionInvoiceService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async getPaymentByIdOrThrow(id: string) {
@@ -57,6 +59,8 @@ export class PaymentService {
       );
     }
 
+    let payment: any;
+
     await this.prismaService.$transaction(async (tx) => {
       const newAmountPaid = Number(invoice.amountPaid) + paidAmount;
 
@@ -65,7 +69,7 @@ export class PaymentService {
       const status =
         newBalanceAmount === 0 ? InvoiceStatus.PAID : InvoiceStatus.PARTIAL;
 
-      await tx.payment.create({
+      payment = await tx.payment.create({
         data: {
           paymentCode: generateCode('PAY'),
 
@@ -96,6 +100,11 @@ export class PaymentService {
         },
       });
     });
+
+    await this.notificationService.notifyPaymentSuccess(
+      invoice.student.userId,
+      payment,
+    );
 
     return CustomResponse(
       true,

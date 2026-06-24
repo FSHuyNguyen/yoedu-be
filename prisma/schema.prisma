@@ -175,6 +175,7 @@ model User {
   payments            Payment[]
   leaveReviews        LeaveRequest[]
   activityLogs        ActivityLog[]
+  Notification        Notification[]
 
   @@map("users")
 }
@@ -212,7 +213,6 @@ model Student {
   invoices        TuitionInvoice[]
   leaveRequests   LeaveRequest[]
   enrollments     Enrollment[]
-  Notification    Notification[]
 
   @@map("students")
 }
@@ -572,7 +572,6 @@ model Payment {
   @@map("payments")
 }
 
-
 model LearningResult {
   id String @id @default(uuid())
 
@@ -602,27 +601,22 @@ model LearningResult {
 model Notification {
   id String @id @default(uuid())
 
-  recipientType RecipientType
-
-  /// ID của người nhận (studentId / userId / parentId tuỳ hệ thống mapping runtime)
-  recipientRefId String
-
-  studentId String?
-  student   Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  userId String
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
 
   type NotificationType
 
   title String @db.VarChar(150)
-
   content String @db.VarChar(500)
-
-  relatedEntityType String?
-  relatedEntityId   String?
 
   isRead Boolean @default(false)
 
+  relatedEntityType String?
+  relatedEntityId String?
+
   createdAt DateTime @default(now())
 
+  @@index([userId, isRead])
   @@map("notifications")
 }
 

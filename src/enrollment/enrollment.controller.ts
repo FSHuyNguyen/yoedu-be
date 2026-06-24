@@ -78,9 +78,17 @@ export class EnrollmentController {
     return this.enrollmentService.pause(user, id);
   }
 
+  @Patch(':id/active')
+  @ApiOperation({
+    summary: 'Kích hoạt đăng ký khóa học',
+  })
+  active(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.enrollmentService.active(user, id);
+  }
+
   @Delete(':id')
   @ApiOperation({
-    summary: 'Xóa đăng ký khóa học',
+    summary: 'Hủy đăng ký khóa học',
   })
   remove(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.enrollmentService.remove(user, id);
