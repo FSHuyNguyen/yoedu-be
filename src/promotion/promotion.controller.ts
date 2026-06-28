@@ -75,7 +75,7 @@ export class PromotionController {
     return this.promotionService.active(id);
   }
 
-  @Patch(':id/inactive ')
+  @Patch(':id/inactive')
   @Roles(Role.ADMIN, Role.STAFF)
   @ApiOperation({
     summary: 'Vô hiệu hóa chương trình khuyến mãi',
