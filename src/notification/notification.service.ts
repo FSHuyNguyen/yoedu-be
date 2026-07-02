@@ -1,12 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CustomResponse } from '../shared/utils/response';
 import { StatusCode } from '../shared/utils/status';
+import {
+  EnrollmentStatus,
+  NotificationType,
+  Prisma,
+  SessionStatus,
+} from '@prisma/client';
+import { addMinutes, startOfMinute } from 'date-fns';
 
 @Injectable()
 export class NotificationService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private readonly logger = new Logger(NotificationService.name);
 
   async create(createNotificationDto: CreateNotificationDto) {
     await this.prisma.notification.create({
@@ -147,7 +156,7 @@ export class NotificationService {
   notifyPaymentSuccess(userId: string, payment: any) {
     return this.create({
       userId,
-      type: 'TUITION',
+      type: NotificationType.TUITION,
       title: 'Thanh toán thành công',
       content: `Bạn đã thanh toán thành công hóa đơn ${payment.invoiceId}.`,
       relatedEntityType: 'payment',
@@ -158,11 +167,123 @@ export class NotificationService {
   notifyAbsent(userId: string, attendanceId: string) {
     return this.create({
       userId,
-      type: 'ABSENCE',
+      type: NotificationType.ABSENCE,
       title: 'Thông báo vắng học',
       content: 'Bạn đã vắng mặt một buổi học.',
       relatedEntityType: 'attendance',
       relatedEntityId: attendanceId,
     });
+  }
+
+  // ------------------------------------
+  // Cron jobs
+  // ------------------------------------
+  async sendClassReminder(reminderMinutes: number): Promise<void> {
+    const start = startOfMinute(addMinutes(new Date(), reminderMinutes));
+
+    const end = addMinutes(start, 1);
+
+    /**
+     * 1. Lấy tất cả session sắp diễn ra
+     */
+    const sessions = await this.prisma.courseClassSession.findMany({
+      where: {
+        status: SessionStatus.SCHEDULED,
+        startTime: {
+          gte: start,
+          lt: end,
+        },
+      },
+      include: {
+        courseClass: {
+          include: {
+            enrollments: {
+              where: {
+                status: EnrollmentStatus.ACTIVE,
+              },
+              include: {
+                student: {
+                  include: {
+                    user: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!sessions.length) {
+      return;
+    }
+
+    for (const session of sessions) {
+      const userIds = session.courseClass.enrollments.map(
+        (item) => item.student.userId,
+      );
+
+      if (!userIds.length) continue;
+
+      /**
+       * 2. Kiểm tra đã gửi reminder chưa
+       */
+      const logs = await this.prisma.notificationLog.findMany({
+        where: {
+          sessionId: session.id,
+          reminderMinutes,
+          userId: {
+            in: userIds,
+          },
+        },
+      });
+
+      const sentUserIds = new Set(logs.map((x) => x.userId));
+
+      const notifications: Prisma.NotificationCreateManyInput[] = [];
+      const notificationLogs: Prisma.NotificationLogCreateManyInput[] = [];
+
+      /**
+       * 3. Build Notification
+       */
+      for (const enrollment of session.courseClass.enrollments) {
+        const user = enrollment.student.user;
+
+        if (sentUserIds.has(user.id)) {
+          continue;
+        }
+
+        notifications.push({
+          userId: user.id,
+          type: NotificationType.CLASS_REMINDER,
+          title: 'Sắp đến giờ học',
+          content: `Lớp "${session.courseClass.name}" sẽ bắt đầu sau ${reminderMinutes} phút.`,
+          relatedEntityType: 'COURSE_CLASS_SESSION',
+          relatedEntityId: session.id,
+        });
+
+        notificationLogs.push({
+          sessionId: session.id,
+          userId: user.id,
+          reminderMinutes,
+        });
+      }
+
+      /**
+       * 4. Bulk Insert
+       */
+      await this.prisma.$transaction([
+        this.prisma.notification.createMany({
+          data: notifications,
+        }),
+        this.prisma.notificationLog.createMany({
+          data: notificationLogs,
+        }),
+      ]);
+
+      this.logger.log(
+        `Reminder ${reminderMinutes} phút - Session ${session.id} - ${notifications.length} notifications`,
+      );
+    }
   }
 }

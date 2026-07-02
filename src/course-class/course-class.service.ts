@@ -104,13 +104,15 @@ export class CourseClassService {
         },
       },
 
+      include: COUSE_CLASS_INCLUDE,
+
       orderBy: {
         startDate: 'asc',
       },
     });
 
     return courseClasses.map((courseClass) => ({
-      ...courseClass,
+      ...mapCourseClassResponse(courseClass),
       value: courseClass.id,
       label: courseClass.name,
     }));

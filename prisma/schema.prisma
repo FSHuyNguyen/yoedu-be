@@ -107,6 +107,7 @@ enum NotificationType {
   ABSENCE
   TUITION
   GENERAL
+  CLASS_REMINDER
 }
 
 enum LeaveRequestStatus {
@@ -618,6 +619,19 @@ model Notification {
 
   @@index([userId, isRead])
   @@map("notifications")
+}
+
+model NotificationLog {
+  id String @id @default(uuid())
+
+  sessionId String
+  userId String
+
+  reminderMinutes Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([sessionId, userId, reminderMinutes])
 }
 
 model ActivityLog {

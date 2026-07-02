@@ -18,12 +18,14 @@ import { TuitionInvoiceModule } from './tuition-invoice/tuition-invoice.module';
 import { PromotionModule } from './promotion/promotion.module';
 import { PaymentModule } from './payment/payment.module';
 import { NotificationModule } from './notification/notification.module';
+import { ScheduleModule as ScheduleModuleLibrary } from '@nestjs/schedule';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ScheduleModuleLibrary.forRoot(),
     AuthModule,
     UserModule,
     DashboardModule,
